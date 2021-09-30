@@ -1,0 +1,195 @@
+\documentclass[11pt, a4paper]{book}
+% Warning suppression:
+\usepackage{silence}
+\WarningFilter*{latex}{Marginpar on page \thepage\space moved} % For comments/todo's
+\WarningFilter*{caption}{Unknown document class} % Funky business with the template's caption package
+
+% Package imports
+\usepackage{svn-multi}
+\svnid{$Id$}
+\usepackage{prelim2e}
+\renewcommand{\PrelimWords}{Draft Copy \svnkw{Id}}
+\usepackage[palatino]{anuthesis}
+\usepackage[hyperindex=true,
+			bookmarks=true,
+            pdftitle={Improving Stochastic Network Tomographic Models for Attack Detection}, 
+            pdfauthor={Benjamin Sylvester Millar},
+            colorlinks=false,
+            pdfborder={0 0 2},
+            pagebackref=false,
+            citecolor=blue,
+            plainpages=false,
+            pdfpagelabels,
+            pagebackref=true,
+            hyperfootnotes=false]{hyperref}
+\usepackage[all]{hypcap}
+\usepackage{afterpage}
+\usepackage{graphicx}
+\usepackage{thesis}
+\usepackage{mathtools}
+\usepackage[square]{natbib}
+\usepackage[normalem]{ulem}
+\usepackage[table]{xcolor}
+\usepackage{makeidx}
+\usepackage{cleveref}
+% \usepackage[style=base]{caption}
+\usepackage[style=base]{subcaption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{beramono}
+\usepackage{blkarray, bigstrut}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage[titletoc]{appendix}
+\usepackage{tikz}
+\usepackage{xparse}
+\usepackage[symbols,nogroupskip,nonumberlist,sort=def]{glossaries-extra}
+\usepackage{mdframed}
+\usepackage{ifdraft}
+\usepackage{booktabs}
+\usepackage{relsize}
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage[color=todocolor, colorinlistoftodos]{todonotes}
+\usepackage{setspace}
+\usepackage{ifthen}
+
+
+\usetikzlibrary{external}
+\tikzexternalize[prefix=thesisTemplate/figs/]
+\pgfkeys{/pgf/images/include external/.code=\includegraphics{#1}}
+
+\makeatletter
+\renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
+\makeatother
+
+\urlstyle{sf}
+
+\renewcommand{\sfdefault}{uop}
+\def\UrlBreaks{\do\/\do-}
+
+\renewcommand*{\backref}[1]{}
+\renewcommand*{\backrefalt}[4]{
+  \ifcase #1 %
+    %
+  \or
+    (cited on page #2)%
+  \else
+    (cited on pages #2)%
+  \fi
+}
+
+\crefformat{section}{\S#2#1#3}
+\crefformat{subsection}{\S#2#1#3}
+\crefformat{subsubsection}{\S#2#1#3}
+\crefrangeformat{section}{\S\S#3#1#4 to~#5#2#6}
+\crefmultiformat{section}{\S\S#2#1#3}{ and~#2#1#3}{, #2#1#3}{ and~#2#1#3}
+
+% 
+% Glossary
+% 
+\makenoidxglossaries
+\glsxtrnewsymbol[description={The graph representing the network under analysis.}]{network}{\ensuremath{N}}
+\glsxtrnewsymbol[description={Set of switches within the network $N$, analogous to link to external sub-networks}]{switches}{\ensuremath{S}}
+\glsxtrnewsymbol[description={Set of monitors within the network where $M\subseteq S$}]{monitors}{\ensuremath{M}}
+\glsxtrnewsymbol[description={Set of routers within the network.}]{routers}{\ensuremath{R}}
+\glsxtrnewsymbol[description={Set of nefarious routers within the network $R_N\subseteq R$ that problematically hold packets.}]{nefrouters}{\ensuremath{R_N}}
+\glsxtrnewsymbol[description={Cardinality of a set of network elements, or number of those within the network (i.e. |R| is the number of routers within the network).}]{|}{\ensuremath{|\;|}}
+\glsxtrnewsymbol[description={The number of packets a given network element receives in a single time step}]{qlen}{\ensuremath{Q}}
+\glsxtrnewsymbol[description={Set of all possible paths between monitors.}]{ppaths}{\ensuremath{P}}
+\glsxtrnewsymbol[description={Set of paths between monitors which are actively probed for measurement $P^*\subseteq P$.}]{p*}{\ensuremath{P^*}} 
+\glsxtrnewsymbol[description={The degree or number of links attached to a router}]{routerdeg}{\ensuremath{deg(r)}}
+\glsxtrnewsymbol[description={The maximum degree of a node within a graph of subset of nodes, realised in context as $\Delta (R)$ or the maximum number of links attached to a router within the network.}]{maxdeg}{\ensuremath{\Delta}}
+\glsxtrnewsymbol[description={Routers which are unidentifiable irrespective of $P^*$ under the chose routing scheme.}]{urouters}{\ensuremath{R_U}}
+\glsxtrnewsymbol[description={Routers which are identifiable using some $P^*\subseteq P$ under the chose routing scheme.}]{irouters}{\ensuremath{R_I}}
+\glsxtrnewsymbol[description={The maximum likelihood estimator, or the most likely set of function or model parameters $\theta$ which produced the observed outcomes.}]{mle}{\ensuremath{\hat\theta}}
+\glsxtrnewsymbol[description={Set of router level metrics collected for each $r\in R_I$}]{metrics}{\ensuremath{\mathcal{M}}}
+\glsxtrnewsymbol[description={The score function of a set of observations from an underlying distribution}]{score}{\ensuremath{\mathcal{S}}}
+\glsxtrnewsymbol[description={The Fisher information a set of observations contains about the underlying parameters $\vec{\theta}$}]{fi}{\ensuremath{I(\vec{\theta})}}
+% /glossary
+
+\input{macros}            
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Preamble
+\title{Improving Stochastic Network Tomographic Models for Attack Detection}
+\author{Benjamin Sylvester Millar}
+\date{\today}
+
+\renewcommand{\thepage}{\roman{page}}
+
+\makeindex
+\begin{document}
+%\doparttoc
+\ActivateWarningFilters[pdftoc]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Title page
+\pagestyle{empty}
+\thispagestyle{empty}
+\input{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Todo's
+\ifdraft{\listoftodos}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Here begin the preliminaries
+\input{frontmatter}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Dedication
+\cleardoublepage
+\pagestyle{empty}
+\input{dedication}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Acknowledgements
+\cleardoublepage
+\pagestyle{empty}
+\input{ack}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Abstract
+\cleardoublepage
+\pagestyle{headings}
+\input{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Table of contents
+\cleardoublepage
+\pagestyle{headings}
+\markboth{Contents}{Contents}
+\tableofcontents
+\printnoidxglossary[type=symbols,style=long,title={Notation and Terminology}]
+\listoffigures
+\listoftables
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Here begins the main text
+\mainmatter
+
+%% Introduction
+\input{intro}
+
+%% Chapters
+\input{litreview}
+\input{background}
+\input{methodology}
+\input{results}
+\input{conclusion}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Here begins the end matter
+
+\input{appendix}
+
+\backmatter
+
+\bibliographystyle{anuthesis}
+% \nocite{*}
+\bibliography{thesis}
+
+\printindex
+
+\end{document}

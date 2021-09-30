@@ -1,0 +1,128 @@
+%      $Id: macros.tex 506 2009-10-05 16:57:07Z daniel $   
+
+% 
+% Abbreviations
+% 
+\newcommand{\eg}{e.g., }
+\newcommand{\ie}{i.e., }
+
+\newcommand{\otoprule}{\midrule[\heavyrulewidth]}
+\newcommand{\pdv}{Packet Delay Variation (PDV) }
+\newcommand{\ur}{Uncontrollable routing (UR) }
+\newcommand{\cfr}{Controllable cycle-free routing (CFR) }
+\newcommand{\cbr}{Controllable cycle-based routing (CBR) }
+\newcommand{\acr}{Arbitrarily controllable routing (ACR) }
+
+\newcommand{\nurserytype}[1]{{\fontfamily{cmss}\selectfont \textsl{#1}}}
+\newcommand{\alloc}{\nurserytype{allocate}\xspace}
+\newcommand{\collect}{\nurserytype{collect}\xspace}
+\newcommand{\redirect}{\nurserytype{redirect}\xspace}
+\newcommand{\bmtype}[1]{{\textsf{#1}}}
+\newcommand{\doi}[1]{\href{http://dx.doi.org/#1}{\nolinkurl{doi:#1}}}
+% /Abbreviations
+
+% 
+% Math operators
+% 
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareRobustCommand{\bbone}{\text{\usefont{U}{bbold}{m}{n}1}}
+\DeclareMathOperator{\EX}{\mathbb{E}}
+\DeclareMathOperator{\VAR}{\hat{\mathbb{V}}}
+\newcommand{\probP}{\text{I\kern-0.15em P}} 
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+% /Math operators
+
+% 
+% Custom colours
+% 
+\definecolor{tableheadcolor}{rgb}{0.8,0.8,1.0}
+%\definecolor{tablealtcolor}{rgb}{0.9,0.9,1.0}
+\definecolor{tablealtcolor}{rgb}{0.9,0.9,0.95}
+\definecolor{todocolor}{rgb}{0.8,0.8,1.0}
+\definecolor{fixcolor}{rgb}{1,0.8,0.8}
+\definecolor{commentcolor}{rgb}{0.8,1.0,0.8}
+% /Custom colours
+
+%
+% Margin notes
+%
+\newcommand{\ltodo}[1]{\reversemarginpar\todo[color=todocolor]{#1}}
+\newcommand{\rtodo}[1]{\normalmarginpar\todo[color=todocolor]{#1}}
+\newcommand{\itodo}[1]{\todo[inline]{#1}}
+
+\newcommand{\lfix}[1]{\reversemarginpar\todo[color=fixcolor]{#1}}
+\newcommand{\rfix}[1]{\normalmarginpar\todo[color=fixcolor]{#1}}
+\newcommand{\ifix}[1]{\todo[inline,color=fixcolor]{#1}}
+
+\newcommand{\lcomment}[1]{\reversemarginpar\todo[color=commentcolor]{#1}}
+\newcommand{\rcomment}[1]{\normalmarginpar\todo[color=commentcolor]{#1}}
+\newcommand{\icomment}[1]{\todo[inline,color=commentcolor]{#1}}
+
+% 
+% Misc
+% 
+
+\lstloadlanguages{python}
+\DeclareGraphicsRule{*}{pdf}{*}{}
+\newcommand{\ignore}[1]{}
+\newcommand{\mccenter}[1]{\multicolumn{1}{c|}{#1}}
+
+\newcommand{\placeholderfigure}[2]{
+\begin{figure}[ht!]
+  \begin{center}
+    \resizebox{\textwidth-2cm}{0.7\textwidth-1.4cm}{todo}
+  \end{center}
+  \caption{#2}#1
+\end{figure}}
+
+\newcommand{\rowvect}[1]{% inline row vector
+  \begin{bmatrix}#1\end{bmatrix}%
+}
+
+\long\def\sfootnote[#1]#2{\begingroup%
+\def\thefootnote{\fnsymbol{footnote}}\footnote[#1]{#2}\endgroup}
+% /misc
+
+%
+% crossreferencing footnotes
+%
+%\newcommand{\fnref}[1]{~(\ref{#1})}
+%\newcommand{\onecolparbox}{3.1in}
+
+
+%%
+%% Change the sections etc.
+%%
+%\makeatletter
+%\parskip=0pt
+%\renewcommand\section{\@startsection{section}{1}{\z@}%
+%                                   {-2.5ex}% beforeskip
+%%                                   {1ex}% afterskip
+%                                   {\large \bfseries \raggedright}}
+% \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+%                                     {-2ex\@plus -1ex \@minus -.2ex}%
+%                                      {.5ex \@plus .2ex}%
+%                                      {\normalsize \bfseries \raggedright}}
+% \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+%                                      {-2ex\@plus -1ex \@minus -.2ex}%
+%                                      {1ex \@plus .2ex}%
+%                                      {\normalfont\fontsize{11pt}{12pt}\selectfont\itshape}}
+%\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+%\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}% 
+%  {.5em}%
+%  {-1em}%
+%  {\normalfont\normalsize\bfseries\parskip=0pt}}
+%\setlength\partopsep{0\p@}
+%\setlength\parskip{0\p@ \@plus \p@}
+
+%\makeatother
+%\parindent=9pt
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "doa"
+%%% End:
