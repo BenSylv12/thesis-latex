@@ -11,7 +11,7 @@ Network Tomography is the technique of using end-to-end measures to make inferen
 Network tomography is most analogous to a single one of these slices however instead of using the attenuation of x-rays to infer body tissue density we observe the latency of communication to infer the structure and behaviour of routers within a network, a high level illustration of the problem is given in \ref{fig:nettom?}. In network science this latency is referred to as a delay and is calculated from the time a given ‘packet’ or discrete signal takes to traverse the network to its predetermined destination. It should be noted that although in network science there are various forms of signal casting - primarily broadcasting, uni-casting, multi-casting, and any-casting - we will focus on the case of a uni-casted signal. This is as the inclusion of alternative casting methods introduces enough complexity to the analysis that tomography under each casting method has spawned its own sub field of research (\cite{lawrence_network_2006}).\par
 \begin{figure}
     \centering
-    \includegraphics[width=10cm]{thesisTemplate/figs/nettom-illustration.png}
+    \includegraphics[width=10cm]{figs/nettom-illustration.png}
     \caption[Illustrative example of network requiring tomographic probing]{Illustrative example of network requiring tomographic probing \cite{lawrence_network_2006}}
     \label{fig:nettom?}
 \end{figure}
@@ -54,7 +54,7 @@ The goal of network generation in the context of validating tomographic models i
 Current work around nefarious router identification in stochastic networks by \cite{barnes_stochastic_2020} uses a user defined connectivity parameter to generate edges between nodes. This is analogous to the Erdos-Renyi (ER) generation technique originally posed in \cite{erdos_random_1959}, we provide formal definitions of this technique in \cref{sec:Bgraphgeneration}. In real world networks however, router degree (number of connected routers and switches) converges to a power law i.e. the distribution of router degree in a sufficiently large network as shown in \ref{fig:nddist} (\cite{chen_origin_2002}, \cite{zhao_measurement_2020}) - such graphs are commonly referred to as “scale-free”. In contrast to this, a Poisson distribution of node degree is observed in other more naive network generation algorithms such as the Erdős–Rényi model as shown compared to scale free graph \ref{fig:nddist}.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=10cm]{thesisTemplate/figs/nodedegree-dist.png}
+    \includegraphics[width=10cm]{figs/nodedegree-dist.png}
     \caption[Distribution of node degree in a generated network]{Distribution of node degree in a generated network (note log scale of the x-axis) \cite{baronchelli_networks_2013}}
     \label{fig:nddist}
 \end{figure}
@@ -102,7 +102,7 @@ In this section we firstly describe how network tomography is able to be posed a
 At the most basic level an inverse problem if defined as as the process of calculating from a set of observations the causal factors that produced them (\cref{fig:probleminv}, \cite{sadri_effect_2019}).
 \begin{figure}[H]
     \centering
-    \includegraphics[width=10cm]{thesisTemplate/figs/inverse_problems.png}
+    \includegraphics[width=10cm]{figs/inverse_problems.png}
     \caption[Illustration of problem inversion]{Illustration of problem inversion \cite{sadri_effect_2019}}
     \label{fig:probleminv}
 \end{figure}
