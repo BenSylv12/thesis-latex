@@ -34,7 +34,7 @@ Within \gls{network} there is a set of switches \gls{switches} analogous to conn
     Given we assume a priori knowledge of the network's topology a set of probe paths is decided on before beginning to collect end-to-end measurements. At the beginning of the measurement interval each monitor sends an allocated number of probe packets along each probe path, noting the time sent ($t^s$) and along which probe path. The destination monitor upon reception of the packet then also stores the time of reception ($t^r$) and packet's probe path, as illustrated in \ref{fig:pptransmission}. 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=5cm]{thesisTemplate/figs/probe_transmission.png}
+        \includegraphics[width=5cm]{figs/probe_transmission.png}
         \caption[Illustration of probe packet transmission between two monitors]{Illustration of probe packet transmission between two monitors \protect\cite{he_fisher_2015}}
         \label{fig:pptransmission}
     \end{figure}
@@ -86,11 +86,11 @@ To understand the multidimensional case of a matrix one must first understand th
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{thesisTemplate/figs/logprob_var_10.png}
+        \includegraphics[width=\textwidth]{figs/logprob_var_10.png}
         \caption[]{$log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{thesisTemplate/figs/logprob_var_0.5.png}
+        \includegraphics[width=\textwidth]{figs/logprob_var_0.5.png}
         \caption[]{$log(\vec{\theta}_b\ |\ \vec{y})$}
     \end{subfigure}
     \caption[Log-likelihood's of observations given a Gaussian distribution]{}
@@ -100,11 +100,11 @@ To understand the multidimensional case of a matrix one must first understand th
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{thesisTemplate/figs/deriv_var_10.png}
+        \includegraphics[width=\textwidth]{figs/deriv_var_10.png}
         \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{thesisTemplate/figs/deriv_var_0.5.png}
+        \includegraphics[width=\textwidth]{figs/deriv_var_0.5.png}
         \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
     \caption[Score functions of the log-likelihood of observations over $-20<x<20$]{}
@@ -113,11 +113,11 @@ To understand the multidimensional case of a matrix one must first understand th
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{thesisTemplate/figs/deriv_dist_10.png}
+        \includegraphics[width=\textwidth]{figs/deriv_dist_10.png}
         \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{thesisTemplate/figs/deriv_dist_0.5.png}
+        \includegraphics[width=\textwidth]{figs/deriv_dist_0.5.png}
         \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
     \end{subfigure}
     \caption[Distribution of the score functions when evaluated at $x=\mu'$ ]{}
