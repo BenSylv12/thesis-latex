@@ -10,19 +10,6 @@
 \usepackage{prelim2e}
 \renewcommand{\PrelimWords}{Draft Copy \svnkw{Id}}
 \usepackage[palatino]{anuthesis}
-\usepackage[hyperindex=true,
-			bookmarks=true,
-            pdftitle={Improving Stochastic Network Tomographic Models for Attack Detection}, 
-            pdfauthor={Benjamin Sylvester Millar},
-            colorlinks=false,
-            pdfborder={0 0 2},
-            pagebackref=false,
-            citecolor=blue,
-            plainpages=false,
-            pdfpagelabels,
-            pagebackref=true,
-            hyperfootnotes=false]{hyperref}
-\usepackage[all]{hypcap}
 \usepackage{afterpage}
 \usepackage{graphicx}
 \usepackage{thesis}
@@ -31,10 +18,9 @@
 \usepackage[normalem]{ulem}
 \usepackage[table]{xcolor}
 \usepackage{makeidx}
-\usepackage{cleveref}
-% \usepackage[style=base]{caption}
-\usepackage[style=base]{subcaption}
 \usepackage{float}
+\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage[style=base]{subcaption}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[T1]{fontenc}
@@ -55,10 +41,26 @@
 \usepackage[color=todocolor, colorinlistoftodos]{todonotes}
 \usepackage{setspace}
 \usepackage{ifthen}
+\usepackage{braket}
+\usepackage[hyperindex=true,
+			bookmarks=true,
+            pdftitle={Improving Stochastic Network Tomographic Models for Attack Detection}, 
+            pdfauthor={Benjamin Sylvester Millar},
+            colorlinks=false,
+            pdfborder={0 0 2},
+            pagebackref=false,
+            citecolor=blue,
+            plainpages=false,
+            pdfpagelabels,
+            pagebackref=true,
+            hyperfootnotes=false]{hyperref}
+\usepackage[all]{hypcap}
+\usepackage{cleveref}
 
+\crefname{algocf}{alg.}{algs.}
 
 \usetikzlibrary{external}
-\tikzexternalize[prefix=figs/]
+\tikzexternalize[prefix=figs/tikzcache/]
 \pgfkeys{/pgf/images/include external/.code=\includegraphics{#1}}
 
 \makeatletter
@@ -181,15 +183,10 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Here begins the end matter
-
-\input{appendix}
-
 \backmatter
-
 \bibliographystyle{anuthesis}
 % \nocite{*}
 \bibliography{thesis}
-
+\input{appendix}
 \printindex
-
 \end{document}
