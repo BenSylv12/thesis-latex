@@ -11,7 +11,7 @@ Network Tomography is the technique of using end-to-end measures to make inferen
 Network tomography is most analogous to a single one of these slices however instead of using the attenuation of x-rays to infer body tissue density we observe the latency of communication to infer the structure and behaviour of routers within a network, a high level illustration of the problem is given in \ref{fig:nettom?}. In network science this latency is referred to as a delay and is calculated from the time a given ‘packet’ or discrete signal takes to traverse the network to its predetermined destination. It should be noted that although in network science there are various forms of signal casting - primarily broadcasting, uni-casting, multi-casting, and any-casting - we will focus on the case of a uni-casted signal. This is as the inclusion of alternative casting methods introduces enough complexity to the analysis that tomography under each casting method has spawned its own sub field of research (\cite{lawrence_network_2006}).\par
 \begin{figure}
     \centering
-    \includegraphics[width=10cm]{figs/nettom-illustration.png}
+    \includegraphics[width=10cm]{figs/intro/nettom-illustration.png}
     \caption[Illustrative example of network requiring tomographic probing]{Illustrative example of network requiring tomographic probing \cite{lawrence_network_2006}}
     \label{fig:nettom?}
 \end{figure}
@@ -37,6 +37,7 @@ Although this results in less accurate classification of nefarious nodes, we uti
 Finally we aim to use this exploration to complete two secondary objectives relating to network tomographic inference of nefarious nodes within a network. Firstly to fix inconclusive results in the work of Barnes relating to the impact of monitor placement algorithms on identifiability of nefarious router sets. Secondly, in the vein of \cite{zhao_measurement_2020}, we lay the framework for the inclusion of alternate attack methods into complex stochastic tomographic models and quantify the effect of these attacks on the power of tomographic inference. The importance of the analysis of tomography accuracy in such adversarial settings is still a fledgling field of research with very few studies on the topic as noted in a compilation of current work in \cite{he_network_2021}.
 
 \newpage
+
 \section{Stochastic Network Tomographic Models}
 \label{sec:Imodels}
 
@@ -54,7 +55,7 @@ The goal of network generation in the context of validating tomographic models i
 Current work around nefarious router identification in stochastic networks by \cite{barnes_stochastic_2020} uses a user defined connectivity parameter to generate edges between nodes. This is analogous to the Erdos-Renyi (ER) generation technique originally posed in \cite{erdos_random_1959}, we provide formal definitions of this technique in \cref{sec:Bgraphgeneration}. In real world networks however, router degree (number of connected routers and switches) converges to a power law i.e. the distribution of router degree in a sufficiently large network as shown in \ref{fig:nddist} (\cite{chen_origin_2002}, \cite{zhao_measurement_2020}) - such graphs are commonly referred to as “scale-free”. In contrast to this, a Poisson distribution of node degree is observed in other more naive network generation algorithms such as the Erdős–Rényi model as shown compared to scale free graph \ref{fig:nddist}.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=10cm]{figs/nodedegree-dist.png}
+    \includegraphics[width=10cm]{figs/intro/nodedegree-dist.png}
     \caption[Distribution of node degree in a generated network]{Distribution of node degree in a generated network (note log scale of the x-axis) \cite{baronchelli_networks_2013}}
     \label{fig:nddist}
 \end{figure}
@@ -91,9 +92,10 @@ Drawbacks noted in the development of this solution were its sensitivity to netw
 \subsection{Developed Model}
 \label{ssec:Idevelopedmodels}
 As apart of this work we have developed a network tomographic model within python for bespoke simulation in a constrained environment. We briefly summarize our improvements to the model in this section, referring to elaborations within \cref{cha:background} and \cref{cha:methodology} for where relevant. The main adaptations to the existing model, covered in \cref{sec:Broutingmechanisms} are twofold, being: decentralization of background routing logic and distinction of (probe) packets from monitors. Additionally we implemented several new capabilities within our model to optimize use of resources, primarily: selection of the set of paths to probe \gls{p*} (see \cref{ssec:Bparsppselection}) and probabilistic injection of probe packets over each $p\in P^*$ \cref{sec:Boptimization}.\par
-These additions were made to enable \pdv and other stochastic tomographic approaches outlined in \cref{sec:Bpdvtomography} to be used in inferential analysis. Finally we highlight other smaller novelties within our model from those presented within literature on a case-by-case basis throughout the following section; such as the halting of probe injection before the end of the simulation run time in \cref{sec:Bpdvtomography}. This halting is intended to represent real world situations where an administrator would run a network diagnostic for a set amount of time while the network is under load, we referrer to this time period of actively probing the network as a measurement interval - utilizing this concept further in \cref{ssec:Iex4router}.
+These additions were made to enable \pdv and other stochastic tomographic approaches outlined in \cref{sec:Maddtomography} to be used in inferential analysis. Finally we highlight other smaller novelties within our model from those presented within literature on a case-by-case basis throughout the following section; such as the halting of probe injection before the end of the simulation run time in \cref{sec:Maddtomography}. This halting is intended to represent real world situations where an administrator would run a network diagnostic for a set amount of time while the network is under load, we referrer to this time period of actively probing the network as a measurement interval - utilizing this concept further in \cref{ssec:Iex4router}.
 
 \newpage
+
 \section{Core Concepts}
 \label{sec:Icoreconcepts}
 
@@ -102,7 +104,7 @@ In this section we firstly describe how network tomography is able to be posed a
 At the most basic level an inverse problem if defined as as the process of calculating from a set of observations the causal factors that produced them (\cref{fig:probleminv}, \cite{sadri_effect_2019}).
 \begin{figure}[H]
     \centering
-    \includegraphics[width=10cm]{figs/inverse_problems.png}
+    \includegraphics[width=10cm]{figs/intro/inverse_problems.png}
     \caption[Illustration of problem inversion]{Illustration of problem inversion \cite{sadri_effect_2019}}
     \label{fig:probleminv}
 \end{figure}
@@ -110,7 +112,6 @@ In the context of tomography, packet level information is observe at monitors an
 In efforts to optimize stochastic network tomography we must consider how to maximise the accuracy of our analysis given the random nature of the network. Intuitively the accuracy of our analysis is limited by the amount of information we are able to collate from our probing, we employ the concept of Fisher information from the field of statistical signal detection (\cite{poor_introduction_1994}) to represent our knowledge of a single element of the network. It follows that the garnered information of all elements in the network can be presented in a Fisher information matrix (FIM) to concretely represent our knowledge of all network elements. As we are primarily measuring the variation of packet delays within the network the FIM in this context represents the information we have about queuing delays of individual routers within the network given the paths we have designed probes to take through the network.\par
 In addition to quantifying our knowledge of a network the FIM has a second very desirable property of being able to quantify the minimum accuracy of estimations made about the system which it represents. This lower bound on the accuracy of inferential estimations is known as the Cramér–Rao bound (CRB) and can be seen more intuitively as the worst possible guess we can make about router's queuing delays given the probing measurements we have collected. In \cref{sec:Bparameterestimation} we cover the formal definitions and intuition behind FIM's and their corresponding CRB, later showing in \cref{sec:Mnetworkprobing} how these concepts are realised in the context of tomography. We extend on the formal definitions in \cref{sec:Boptimization} to show how the CRB, and therefore the worst possible accuracy of our guess, can be improved using an iterative approach to probe path selection. Finally after a sufficiently optimised probe path design has been determined we tackle the problem of allocation of probes between these paths. To accomplish this, techniques of optimal experiment design \cite{anthony_c_optimum_1996} are introduced in \cref{sec:Boptimization} and later used in allocation of probes to paths to maximise inferential accuracy in \cref{sec:Mnetworkprobing}.\par
 
-\newpage
 \section{New Inferential Techniques}
 \label{sec:Iinferentialtechniques}
 
@@ -159,17 +160,17 @@ Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at a
 At the end of the measurement interval, the difference in time from each packet being sent from $s_{0,0}$ and the received by $s_{3,0}$ is recorded to calculate the delay of each packet. Ignoring background traffic for illustrative proposes we obtain the delay histograms shown in \cref{fig:ppdelayhist}. Visually we can confirm our expectation of the path with the delaying router $r_1$ having a heavier tailed distribution.\par
 \begin{figure}[H]
     \begin{subfigure}[b]{0.475\textwidth}
-        \includegraphics[width=\textwidth]{net_tom_sim/tests/4routerexample/plots/p0_delayhist.png}
+        \includegraphics[width=\textwidth]{figs/intro/p0_delayhist.png}
         \caption[]{Delays over $p_0$.}
     \end{subfigure}
     \begin{subfigure}[b]{0.475\textwidth}
-        \includegraphics[width=\textwidth]{net_tom_sim/tests/4routerexample/plots/p1_delayhist.png}
+        \includegraphics[width=\textwidth]{figs/intro/p1_delayhist.png}
         \caption[]{Delays over $p_1$.}
     \end{subfigure}
     \caption{Histograms of probe path level delays for a 4 router ring network.}
     \label{fig:ppdelayhist}
 \end{figure}
-From these distributions we compute the mean and delay variance for each path, obtaining values in \cref{tbl:4routerstats}. In this analytical approach the correlation between nefarious router behaviour and path level packet delay becomes glaringly obvious with an almost 200\% increase of delay variance in the path $p_0$ containing the nefarious router $r_1$. Probe path level analysis as we have conducted here however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$, if either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics in \cref{sec:Mnefrouterdetection} .
+From these distributions we compute the mean and delay variance for each path, obtaining values in \cref{tbl:4routerstats}. In this analytical approach the correlation between nefarious router behaviour and path level packet delay becomes glaringly obvious with an almost 200\% increase of delay variance in the path $p_0$ containing the nefarious router $r_1$. Probe path level analysis as we have conducted here however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$, if either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics in \cref{sec:Maddtomography} .
 \begin{table}[H]
     \centering
     \begin{tabular}{||c c c||}
@@ -189,4 +190,4 @@ From these distributions we compute the mean and delay variance for each path, o
 \label{sec:Iintroductionsummary}
 
 In this section we have expanded upon the problem of improving existing simulations. We note it serves to treat it instead as 3 separate but related problems of optimisations and extension at each of the previously listed stages. This is as the work done at each stage can be entirely self contained and parsed to another if required, the network can be generated at at earlier point in time, stored and later given to the network traffic simulation, likewise the metrics measures from this simulation can be stored and later used to calculate probabilities of a given router being nefarious.\par
-Optimisation to the code for time complexity is desirable as it allows for larger simulations to be run for more time steps given limited compute resources available. Such extended run time allow for statistical approximations to converge as seen in \cref{cha:result}. The simulation of larger networks also allows for the inclusion of real world network topologies such as (\cite{cadi_caida_2002}, \cite{university_of_washington_rocketfuel_2002}, \cite{medina_brite_2001}) for analysis, a key requirement for the goal of this body of work. The final artifact of code is presented and made available at (\cite{sylvester_millar_real_2021}) in hopes that future work will be able to use this to further expand on this area of work, specific extensions are highlighted in \cref{cha:conc}.
+Optimisation to the code for time complexity is desirable as it allows for larger simulations to be run for more time steps given limited compute resources available. Such extended run time allow for statistical approximations to converge as seen in \cref{cha:result}. The simulation of larger networks also allows for the inclusion of real world network topologies such as \cite{cadi_caida_2002}, \cite{university_of_washington_rocketfuel_2002}, \cite{medina_brite_2001} for analysis, a key requirement for the goal of this body of work. The final artifact of code is presented and made available at (\cite{sylvester_millar_real_2021}) in hopes that future work will be able to use this to further expand on this area of work, specific extensions are highlighted in \cref{cha:conc}.

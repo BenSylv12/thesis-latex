@@ -3,7 +3,7 @@
 
 In this chapter we aim to provide the reader with a concrete understanding of key concepts utilised within our new tomographic technique along with a conceptual grasp on metrics and methods used to analyse and verify it. We begin with the theory and intuition behind previously and currently employed random network generation algorithms in \cref{sec:Bgraphgeneration}, providing the reader with a deeper understanding of terms from \cref{ssec:Icurrentmodels}.\par
 To explore findings within previous work relating to the effect of monitor placements strategy on tomographic accuracy, we introduce established algorithms for placement of these observable monitors within networks from literature in \cref{sec:Bmonitorplacement}. Next we establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints, we also separate routing into four classes according to these restraints, justifying a focus on the \cbr and \cfr mechanisms for subsequent sections.\par
-Next we give generalised explanations of key statistical concepts, concisely summarizing their realization within our work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization} with the intent of giving a more verbose grounding of these in the context of network tomography within \cref{cha:methodology}. Lastly we tie all aforementioned concepts together through their use within our novel tomographic model and explore existing implementations of \pdv tomography within the network tomographic corpus in \cref{sec:Bpdvtomography}.
+Next we give generalised explanations of key statistical concepts, concisely summarizing their realization within our work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization} with the intent of giving a more verbose grounding of these in the context of network tomography within \cref{cha:methodology}. Lastly we tie all aforementioned concepts together through their use within our novel tomographic model and explore existing implementations of \pdv tomography within the network tomographic corpus in \cref{sec:Maddtomography}.
 
 \section{Graph Generation}
 \label{sec:Bgraphgeneration}
@@ -34,11 +34,11 @@ Within \gls{network} there is a set of switches \gls{switches} analogous to conn
     Given we assume a priori knowledge of the network's topology a set of probe paths is decided on before beginning to collect end-to-end measurements. At the beginning of the measurement interval each monitor sends an allocated number of probe packets along each probe path, noting the time sent ($t^s$) and along which probe path. The destination monitor upon reception of the packet then also stores the time of reception ($t^r$) and packet's probe path, as illustrated in \ref{fig:pptransmission}. 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=5cm]{figs/probe_transmission.png}
+        \includegraphics[width=5cm]{figs/background/probe_transmission.png}
         \caption[Illustration of probe packet transmission between two monitors]{Illustration of probe packet transmission between two monitors \protect\cite{he_fisher_2015}}
         \label{fig:pptransmission}
-    \end{figure}
-    Given $X$ probes are sent on a path we are then able to find the mean end-to-end travel time of a packet on that path by: \[travel\;time=\frac{\sum_{\forall  t_x^s, t_x^r}t_x^r - t_x^s}{X}\] where $t_x^r$, $t_x^r$ denote the $x$th packet sent on that path. This calculation is trivial within small networks as there exist only a small number of probe paths and the measurement interval (and therefore $X$) required for reliable metrics is brief. To account for clock synchronization discrepancies between distributed monitors in this calculation we introduce the concept of packet delay variation (PDV) tomography for analysis in \cref{sec:Mnetworkprobing} \par
+    \end{figure}\newpage
+    \noindent Given $n$ probes are sent on a path we are then able to find the mean end-to-end travel time of a packet on that path by: \[\text{travel time}=\frac{\sum_{i=1}^nt_i^r - t_i^s}{n}\] where $t_n^s$, $t_n^r$ denote the time the $x$th packet sent on that path is sent and received respectively. This calculation is trivial within small networks as there exist only a small number of probe paths and the measurement interval (and therefore $n$) required for reliable metrics is brief. To account for clock synchronization discrepancies between distributed monitors in this calculation we introduce the concept of packet delay variation (PDV) tomography for analysis in \cref{sec:Mnetworkprobing} \par
 
     Let \gls{monitors} denote the set of monitors within \gls{network}, \gls{ppaths} denote the set of all possible probe paths, and $\gls{|}P|$ be the number of potential probe paths  is then intuitively equal to all possible non cyclic paths between each pair of monitors. A naive approach of calculating all probe paths is therefore of the order $\mathcal{O}(m^m)$ where $m=\gls{|}\gls{monitors}|$. As the network grows in size this super-exponential growth of possible probe paths requires a more discerning approach to probe path selection. As the ultimate goal of our end-to-end probing is to enable identifiability of each router within the network we need only ensure the chosen set of probe paths is sufficient for this identification.\par
     
@@ -53,7 +53,7 @@ Within \gls{network} there is a set of switches \gls{switches} analogous to conn
     Arbitrarily controllable routing represents the ideal case where a probe packet traverse every link and router as many times as desired. This form of routing is analogous to that afforded by SDN and other strict source routing architectures (\cite{university_of_southern_california_darpa_1981}, \cite{open_networking_foundation_openflow_2015}) and allows for complete router identifiability using only a single arbitrarily placed monitor (\cite{he_network_2021}). Due to the triviality of router identification and limited SDN use cases in real world networks (\cite{jarschel_interfaces_2014}) under this scheme we will not consider ACR in our analysis.\par
     
     The remaining routing mechanisms CBR and CFR represent routing mechanisms within all optical (\cite{ahuja_srlg_2011}) and multi protocol label switching (MPLS) networks (\cite{rosen_multiprotocol_2001}) respectively. In CBR a packet may traverse a router any number of times but only traverse each link once, in contrast under CFR a packet may only traverse every router and link at most once. As routing restrictions under CBR are relaxed compared to those under CFR we note that for all topologies $max(P)|CFR \subseteq max(P)|CBR$. Both these mechanisms are widely used and provide an interesting set of limitations while still allowing for unique router identifiable, we will therefore focus on these in our analysis, mentioning UR and ACR only in relevant edge cases.
-    
+
 \section{Parameter Estimation}
 \label{sec:Bparameterestimation}
 
@@ -83,52 +83,51 @@ Note that we assume that the MLE is unbiased, meaning that for any value of $\th
 \label{ssec:Bfisherinformation}
 
 To understand the multidimensional case of a matrix one must first understand the single dimensional case, in this case the amount of information a single continuous random variable $X$ contains about the parameter $\theta$ governing its distribution is known as its Fisher information $I(\theta)$. This governance of $\theta$ of $X$ can be expressed as the parametric probability distribution function (PDF) $f(X\ |\ \theta) = y$ where $y$ is the value of the function we observe. From this we define $f_{X\,|\,\theta}(y) = \probP(y\ |\ f(X|\theta))$ or intuitively the probability of observing the value $y$ from $X$ given the parameter $\theta$. The Fisher information is simply a measure of how accurately an single observation $y$ or more typically a set of observations $\vec{y}$ determines $\theta$. For example consider two Gaussian PDFs: $a = \mathcal{N}(X\ |\ \vec{\theta}_a)$ and $b = \mathcal{N}(X\ |\ \vec{\theta}_b)$ where $\vec{\theta}_a = \{\mu=0, \sigma^2=10\}$ and $\vec{\theta}_b = \{\mu=0,\sigma^2=0.5\}$. Plots of the log-likelihood function for a set of $n$ observations $\vec{y}$ from a and b are given in \cref{fig:loglikelihoods} a and b respectively.
-\begin{figure}[H]
+\begin{figure}
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/logprob_var_10.png}
+        \includegraphics[width=\textwidth]{figs/background/logprob_var_10.png}
         \caption[]{$log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/logprob_var_0.5.png}
+        \includegraphics[width=\textwidth]{figs/background/logprob_var_0.5.png}
         \caption[]{$log(\vec{\theta}_b\ |\ \vec{y})$}
     \end{subfigure}
     \caption[Log-likelihood's of observations given a Gaussian distribution]{}
     \label{fig:loglikelihoods}
 \end{figure}
 \noindent Intuitively from these plots its clear that the low variance case a enables a more accurate estimation of $\mu$ due to the steeper slopes of the log-likelihood function. We obtain these slopes by taking derivative with respect to a model parameter ($\mu$ in this case) of the log-likelihood $\frac{\partial}{\partial\mu} log(\vec{\theta}\ |\ y),\;y\in\vec{y}$ this is known as the score function by convention, we will denote it as $\gls{score}$, note that for more complex functions we assume this derivative exists. For the sake of completeness we show plots of $\mathcal{S}_a$, $\mathcal{S}_b$ for our $\vec{y}$ observations from a and b respectively in \cref{fig:scorefunctions} and the distribution each score function $\mathbb{D}(\mathcal{S})$ when evaluated at the true parameter value $\mu' = 5$ in \cref{fig:scorefunctiondist}.
-\begin{figure}[H]
+\begin{figure}
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/deriv_var_10.png}
+        \includegraphics[width=\textwidth]{figs/background/deriv_var_10.png}
         \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/deriv_var_0.5.png}
+        \includegraphics[width=\textwidth]{figs/background/deriv_var_0.5.png}
         \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
     \caption[Score functions of the log-likelihood of observations over $-20<x<20$]{}
     \label{fig:scorefunctions}
 \end{figure}
-\begin{figure}[H]
+\begin{figure}
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/deriv_dist_10.png}
+        \includegraphics[width=\textwidth]{figs/background/deriv_dist_10.png}
         \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/deriv_dist_0.5.png}
+        \includegraphics[width=\textwidth]{figs/background/deriv_dist_0.5.png}
         \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
     \end{subfigure}
     \caption[Distribution of the score functions when evaluated at $x=\mu'$ ]{}
     \label{fig:scorefunctiondist}
 \end{figure}
-The Fisher information is the variance of the distribution of the score functions at the true parameter value $\VAR[\mathbb{D}(\mathcal{S}_a)], \mu'$ calculating this from $\vec{y}$ we obtain tha values $I(\theta_a)= 1.77\text{e}-5$ and $I(\theta_b)=5.37\text{e}-3$ confirming initial observations that the low $\sigma^2$ case of b provides more information. Note as Fisher information is often used in cases where $\mu'$ is unknown, the secondary and more common method of calculation is to instead take the derivative of the score functions (second derivative of the log-likelihood), the fisher information in then given by \cref{eq:Fisherinfo}. As the 2nd derivative of the log-likelihood of a normal distribution is always a single value we omit plots of the second derivative and it's distribution when evaluated at $\mu'$ for brevity.
+The Fisher information is beautifully given by the variance of the distribution of the score functions at the true parameter value $\VAR[\mathbb{D}(\mathcal{S}_a)], \mu'$. Calculating $I(\theta)$ from $\vec{y}$ we obtain $I(\theta_a)= 1.77\text{e}-5$ and $I(\theta_b)=5.37\text{e}-3$ confirming initial observations that the low variance case of b provides more information. Note as Fisher information is often used in cases where $\mu'$ is unknown, the secondary and more common method of calculation is to instead take the derivative of the score functions (second derivative of the log-likelihood), the fisher information in then given by \cref{eq:Fisherinfo}. As in a normal distribution the 2nd derivative of the log-likelihood is always a single value we omit plots of the second derivative and it's distribution when evaluated at $\mu'$ for brevity.
 \begin{equation}\label{eq:Fisherinfo}
     I(\theta) = -\EX_{\vec{\theta}} \left[
     \frac{\partial^2}{\partial^2\mu} log(y\ |\ \vec{\theta})\right]
 \end{equation}
-
 Now considering the multidimensional case of a complex system containing $X=\{x_1,x_2,\ldots,x_n\}$ random variables, each governed by a respective parameter in $\vec{\theta}=\{\theta_1,\theta_2,\ldots,\theta_n\}^T$. Let the value of a single element $x\in X$ in the system have the PDF $f(x\ |\ \theta_x) = y$, with a log-likelihood of $f_{x|\theta_x}(\vec{y}_x)$ where $\theta_x\in \vec{\theta}$ and $y_x$ is the set of observations we make of $x$. We make an additional assumption that that the score function $\forall x\in X,\; \gls{score}:=\frac{\partial}{\partial\mu} f_{x|\theta_x}(y_x)$ is finite (\ie $|X| = n < \infty$). The Fisher information matrix (FIM) \gls{fi} is then the row-major $n\times n$ matrix:
 \begin{equation*}
     I(\vec{\theta}) = [I_{ij}(\vec{\theta})^{n}_{i,j=1}]
@@ -144,6 +143,7 @@ Where the jth element of the ith row is given by:
     I_{ij}(\vec{\theta})= -\EX_{\vec{\theta}}\left[
     \frac{\partial^2}{\partial \theta_i \partial \theta_j} log f_{x|\vec{\theta}}(y)\right]
 \end{equation}
+This matrix concisely represents the co-variance of all MLEs, with the co-variance of the $i$th and $j$th parameters estimator given by $\gls{fi}_{ij}$ and the variance of the estimator of parameter $n\equiv\gls{fi}_{nn}$.
 
 \subsection{The Cramér–Rao Bound}
 \label{ssec:Bcrb}
@@ -178,32 +178,117 @@ For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$,
     &\geq [I(\vec{\theta})_{ii}]^{-1}
 \end{align*}
 
-
 \section{Optimization Techniques}
 \label{sec:Boptimization}
+The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing by decomposing the measurement process into two stages: selection of paths to probe and allocation of probes over these paths. In \cref{ssec:Bparsppselection} we address the first of these stages, explaining the desire for a minimal number of paths and presenting Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we cover relevant core concepts in the field of optimum experimental design with the intent of using these in the context of probe allocation to paths in \cref{ssec:Mpallocation}.
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Bparsppselection}
-\todo{Introduce why we want to minimize \# probe paths}
-Probe path selection using algos from \cite{lawrence_network_2006}, \cite{rahali_unicast_2019}, \cite{k_deng_delay_2012}, \cite{rahali_unicast_2019}, and \cite{tootaghaj_parsimonious_2018}
 
-The selection of a minimal set of probe paths to use in tomographic analysis (\gls{p*}) is a non-trivial task but has been explored previously (\cite{tootaghaj_parsimonious_2018}, \cite{rahali_unicast_2019}, \cite{he_distributed_2018}) and polynomial time solutions have been derived. There are three notable algorithms in the literature that have been developed: k-means, Evolutionary Sampling Algorithm (ESA), and Greedy Measurement Design (GMD), each with their own pros and cons. We note that the GMD algorthim was designed under the assumption of a central monitor where all probe path metrics were compiled. As we control and can observe all monitors within our problem representation we do not consider GMD, instead employing the ESA technique as it has been shown to yield faster computation of \gls{p*} over arbitrary networks.
+With a scope limited to tree network topologies \cite{lawrence_network_2006} focused on deriving an algorithm for an optimal selection of a set of probe paths $P^*$ for network tomography. We define an optimal selection of probe paths as the minimal set of probe paths that allow for complete node identifiability. Such a minimal set is desirable as when probing we allocate probe packets over each path $p\in P^*$, reducing the amount of information we gain about a path proportionally to the number of probe allocated to it. To ensure our inference is robust and has a maximal CRB (discussed in \cref{ssec:Bcrb}) we aim to gain as much data over the measurement interval as possible and adopt a parsimonious approach where we aim to select a $P^*$ s.t. \cref{eq:minpp} holds where $P$ is the set of all possible probe paths.
+\begin{equation}
+\label{eq:minpp}
+    I(P^*) = I(P)
+\end{equation}
+\par
+The problem of rigorously minimizing $P^*$ has been shown to be NP-hard by \cite{zheng_minimizing_2013}. However polynomial time solutions using a heuristic based approach for an approximation of a minimal $P*$ in general topologies have been derived previous and three notable methods have been developed: Zheng's algorithm (\cite{zheng_minimizing_2013}), Evolutionary Sampling algorithm (\cite{rahali_unicast_2019}), and Greedy-Min-Cost-Rank (\cite{tootaghaj_parsimonious_2018}). As the Evolutionary Sampling algorithm (ESA) was developed under the assumption of central monitors where all probe path metrics are compiled contrasting our assumption of observability of all monitors we do not consider ESA.\par
+\captionsetup{justification=centering}
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{bipartitegraph}
+    \begin{tikzpicture}[
+        node/.style={circle, draw=black!60, very thick, minimum size=5mm},
+        group/.style={circle, draw=black!60, very thick, minimum size=5mm},]
+        
+        % Nodes
+        \node[node] (v10) at (-6.5,1.5) {};
+        \node[node] (v11) at (-5.5,1.5) {};
+        \node at (-4.5,1.5) {{\LARGE\ldots}};
+        \node[node] (v12) at (-3.5,1.5) {};
+        
+        \node[node] (u10) at (-6.5,-1.5) {};
+        \node[node] (u11) at (-5.5,-1.5) {};
+        \node at (-4.5,-1.5) {{\LARGE\ldots}};
+        \node[node] (u12) at (-3.5,-1.5) {};
+        
+        \node[node] (v20) at (-0.5,1.5) {};
+        \node[node] (v21) at (0.5,1.5) {};
+        \node at (1.5,1.5) {{\LARGE\ldots}};
+        \node[node] (v22) at (2.5,1.5) {};
+        
+        \node[node] (u20) at (-0.5,-1.5) {};
+        \node[node] (u21) at (0.5,-1.5) {};
+        \node at (1.5,-1.5) {{\LARGE\ldots}};
+        \node[node] (u22) at (2.5,-1.5) {};
+        
+        % Groups
+        \draw[dashed] (-5,1.6) ellipse (2.5cm and 0.75cm);
+        \draw[dashed] (-5,-1.6) ellipse (2.5cm and 0.75cm);
+        \draw[dashed] (1,1.6) ellipse (2.5cm and 0.75cm);
+        \draw[dashed] (1,-1.6) ellipse (2.5cm and 0.75cm);
+        
+        % Edges
+        \draw[very thick] (v10) -- (u10);
+        \draw[very thick] (v10) -- (u11);
+        \draw[very thick] (v11) -- (u12);
+        \draw[very thick] (v11) -- (u10);
+        \draw[very thick] (v12) -- (u12);
+        \draw[very thick] (v20) -- (u11);
+        \draw[very thick] (v20) -- (u12);
+        \draw[very thick] (v21) -- (u22);
+        \draw[very thick] (v20) -- (u20);
+        \draw[very thick] (v22) -- (u21);
+        \draw[very thick] (v22) -- (u22);
+        
+        % Labels
+        \node at (-5,2) {$V_1$};
+        \node at (-5,-2) {$U_1$};
+        \node at (1,2) {$V_2$};
+        \node at (1,-2) {$U_2$};
+    \end{tikzpicture}
+    \caption[Extended bipartite model of the network for probe path selection.]{Extended bipartite model of the network for probe path selection.}
+    \label{fig:ebgm}
+\end{figure}
+Both Greedy-Min-Cost-Rank (GMCR) and Zheng's algorithm minimize the probing cost in a context analogous to ours, however the key difference is in definition of probing cost. In Zheng's algorithm the probing cost is defined as $|P^*|$ whereas in GMCR it is the total number of 'hops' or nodes in all paths $\forall p_i\in P^*,\ \sum |p_i|$. Although developed for the purpose of link tomography \cite{zheng_minimizing_2013} note it's applicability to node tomography we therefore adopt Zheng's algorithm \cref{alg:zhengs} for it's alignment with our goal of minimizing $|P^*|$. The core idea behind Zheng's algorithm is quantifying the contribution of a probe path to node identifiability and then adopting a greedy selection approach until all nodes are identifiable. The criteria used for the greedy is based on a novel extended bipartite graph model (EBGM) shown in \cref{fig:ebgm}.\par
+This graph model groups network nodes into $V_1$ or $V_2$ based on if the node is identifiable or not. The group $U_1$ contains sets of probe paths that enable identification of a node in $V_1$, with an edge connecting a node in $V_1$ and $U_2$ if the set of paths in $U_2$ enables identification of $V_1$. Similarly $U_2$ contains probe paths which traverse a node in $V_2$, with an edge connecting a node in $V_2$ and $U_2$ if the path traverses that node.
+\begin{algorithm}
+    \KwData{The linear system $L$ and parameter $\alpha$}
+    \KwResult{Minimal set of probe paths $P^*$}
     
+    \For{each node}{
+        Calculate $\alpha$ solutions using $A$ and $L$\;
+    }
+    Construct the extended bipartite graph $G'=(U,V,E)$ with the selected solutions\;
+    $P^* \gets \varnothing$ \;
+    $C \gets \varnothing$ \;
+    \While{$\exists\ n \in V_1,\ n\not\in C$}{
+        $u_{selected} \gets u_x\in U_1\ \text{with max}\left(\frac{|newV2|}{|newpaths|}\right)$ where: $newV2 = v_i\in V_2 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
+        $C \gets C + u_{selected}$\;
+        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
+        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
+            $P^* \gets P^* + p_i$\;
+        }
+    }
+    \While{$\exists\ n \in V_2,\ n\not\in C$}{
+        $u_{selected} \gets u_x\in U_1\cup U_2\ \text{with max}\left(\frac{|newV1|}{|newpaths|}\right)$ where: $newV1 = v_i\in V_1 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
+        $C \gets C + u_{selected}$\;
+        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
+        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
+            $P^* \gets P^* + p_i$\;
+        }
+    }
+    Remove all replaceable probing paths from set $P^*$ using $L$\;
+    \caption{Zheng's minimal probe path selection algorithm}
+    \label{alg:zhengs}
+\end{algorithm}
+
 \subsection{Optimum Experiment Design}
 \label{ssec:Boptimumdesigns}
 
-model, a design region, a design criterion, specification of the errors, and comparison of optimal designs with designs, that are popular among practitioners 
-
-\section{Packet Delay Variation Tomography}
-\label{sec:Bpdvtomography}
-\begin{mdframed}Introduction/summary of section.\end{mdframed}
-\rtodo{Need to also use this section to explain why the second order stat of variation is better for clock sync over first order average, and how it is more powerful (accurate) then point to results section which will show quantitative evidence.}
-
-Need to discuss the stopping of probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
-
+Optimum experiment design (OED) is board field of study focusing on statistical methods to ensure an experiment yields the most robust and accurate results possible. Initially shepherded by \cite{smith_standard_1918}, of particular pertinence to tomography is OEDs applicability to parameter estimation in inverse problems. Work around OED for parameter estimation, as noted in \cref{cha:litreview}, primarily focuses on minimising the number of trials or "experimental cost" for accurately estimating a system's underlying statistical models, this lens can be inverted to instead maximise the accuracy of this estimation from a fixed number of trials.\par
+At a high level, the problem of designing an optimal experiment is typically decomposed into 4 primary sub-problems: specification of a model, identification of the design region, specification of a design criterion, and specification of errors. If the formulated design differs significantly from popular existing approaches in literature a comparison should be drawn to validate key differences or identify missteps in problem specification. Irrelevant of its formulation, the experiment produces an estimator of the underlying parameters and is evaluated w.r.t the variance of this estimator as, intuitively, the variance of the estimator corresponds to the accuracy of the experiment.\par
+Experiments to infer complex model\footnote{A complex model is analogous to the mathematical representation of a multi-parametric system such as a computer network.} parameters (sometimes referred to as screening experiments) can be evaluated using a range of statistical criteria however the two most common are A-optimality and D-optimality. A-optimality minimizes the average variance of all parameter estimates or, as the diagonal elements of the FIM correspond to these variances (\cref{ssec:Bfisherinformation}), the trace of the FIM tr$\left(\gls{fi}\right)$. In contrast D-optimality minimises the confidence region around the estimators, as this confidence region is inversely proportional to the determinant of the FIM (\cite{jones_-optimal_2021}) this is equivalent to maximising $|\gls{fi}|$.\par
 
 \section{Summary}
 
-Summary what you discussed in this chapter, and mention the story in next
-chapter. Readers should roughly understand what your thesis takes about by only reading
-words at the beginning and the end (Summary) of each chapter.
+In this chapter we introduced...  \todo{mention the story in next chapter}

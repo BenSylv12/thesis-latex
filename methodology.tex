@@ -3,6 +3,16 @@
 In this section we introduce our computational representation of networks along with concrete implementations and techniques used for dynamic routing algorithms and finally inference calculation...
 \todo{Needs to be fleshed out once section complete}
 
+\section{Router Identification}
+\label{sec:Maddtomography}
+Todo:
+\begin{itemize}
+    \item Tomography as a linear system with a linear solution (note can include multiple routers in probe paths for identifiability just need to divide by the number of times it appears).
+    \item Explain why the second order stat of variation is better for clock sync and accuracy compared to first order average (Point to results).
+\end{itemize}
+
+Need to discuss the stopping of probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
+
 \section{Optimizing Network Probing}
 \label{sec:Moptprobing}
 \subsection{Parsimonious Probe Path Selection}
@@ -57,7 +67,7 @@ Using $\widehat{\mathcal{L}}(q, p)$ we are able to represent a network as a FIM,
 
 We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [0.33, 0.33, 0.33],  $\phi_1$ = [0.1, 0.8, 0.1], and $\phi_2$ = [0.8, 0.1, 0.1]. As there are no nefarious routers each router has an equal expected true PDV, let these true PDV's be $r_0=1, r_1=1, r_2=1$, the CRB of each probe allocation is then $\phi_0$=2.69, $\phi_1$=5.97, $\phi_2$=5.97. Recalling that the CRB provides a lower bound on inferential accuracy, the equal allocation of probes between paths results in the lowest inferential accuracy, this also holds when nefarious behaviour is included. Suppose the case of $r_1$ being nefarious with a $\frac{1}{3}$ probability of holding a packet any timestep, resulting in an increased PDV of 3 the CRB of each probing scheme is then $\phi_0$=1.51, $\phi_1$=4.24, $\phi_2$=2.05. Although each probing scheme performs worse it is clear that $\phi_0$ is comparatively even worse at detecting the increased PDV of the nefarious router than the case of no nefarious nodes. Note for comparison that in the previous case of being $r_1$ nefarious a pseudo optimal probing allocation $\phi_{optimal}$ = [0.0, 0.5, 0.5] results in a CRB of 33.67.
 
-\section{Network Probing}
+\section{Nefarious Router Inference}
 \label{sec:Mnetworkprobing}
     \begin{mdframed}\textbf{FROM BACKGROUND}\\
     In our context we can view these $\vec{\theta}$ as network properties or more productively - as a network is composed only of links and nodes - the link  and node level information which we are looking to infer from our analysis.
@@ -171,7 +181,7 @@ We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [
             &= \rowvect{0\;1\;0\;0\;0\;0}\\
         \end{split}
     \end{align}\par
-    As discussed in \cref{sec:Bpdvtomography} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnefrouterdetection}.\par
+    As discussed in \cref{sec:Maddtomography} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Maddtomography}.\par
     Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}+\gls{urouters}$.\par
     Given this, we ignore \gls{urouters} and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in \gls{irouters}$ following conventions in \cref{eq:r1computation} to give the set of router level metrics \gls{metrics}:
     \begin{equation*}
@@ -183,22 +193,18 @@ We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [
         r_4, & p_2-p_1\\
         \end{cases}
     \end{equation*}
-    Using this we are able to define router identifiability as:
+    From this we define router identifiability as:
     \begin{equation}
     \label{eq:identifiability}
         \forall r \in R_I,\;r \in M 
     \end{equation}
-    Selection of an arbitrary $P^*$ where \cref{eq:identifiability} holds however is sub-optimal as we are required to split our probe packets between each $p\in P^*$. Intuitively we wish to gain as much data over the measurement interval as possible to ensure our inference is robust and as close to the CRB as possible (as discussed in \cref{ssec:Bfisherinformation}). We therefore adopt a parsimonious approach where we aim to select a $P^*$ s.t.
-    \begin{equation}
-    \label{eq:minpp}
-        P^* = \argmin(f(P|A,CFR))
-    \end{equation} 
-    Where $P|A,CFR$ is an $|n|$x$|R|$ matrix of all possible ($n$) probe paths for a given routing matrix $A$ under CFR routing limitations and the function $f(P)$ computes the number of rows (probe paths) within $P$ required for full column rank for each non-unidentifiable router, resulting in uniquely identification of every possible router. We show how the use of this router level identification can be used to extend the example from \cref{ssec:Iex4router} to infer nefarious routers in \cref{sec:Mnefrouterdetection}.\par
+    \todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
+    
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Mparsppselection}
 \todo{How we apply techniques from the content covered in background in our model.}
-The choice of a minimal $P^*$ from \cref{eq:minpp} in a non-trivial task as established in \cref{ssec:Bparsppselection}. 
+As established in \cref{ssec:Bparsppselection} the choice of a minimal $P^*$ from \cref{eq:minpp} in a non-trivial task.
 
 \section{Queue Stabilisation}
 \label{sec:Mqueuestabilisation}
@@ -207,10 +213,6 @@ The choice of a minimal $P^*$ from \cref{eq:minpp} in a non-trivial task as esta
 \subsection{OSPF Routing}
 \label{ssec:Mospfrouting}
 \todo{Explain implementation of link state routing and update interval in the model.}
-
-\section{Nefarious Router Detection}
-\label{sec:Mnefrouterdetection}
-\todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
 
 \section{Model Robustness}
 \label{sec:Mmodelrobustness}
