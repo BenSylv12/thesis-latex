@@ -47,9 +47,10 @@ Finally we construct a simulated network using real world topological and traffi
 \section{Nefarious Router Detection}
 \label{sec:Rnefarouterdetection}
 
-\subsection*{PDV Inference Validity}
-To test our hypothesis that packet delay variation of a router increases proportionally to its probability of nefariously delaying a packet we consider the 6 router network from \cref{sec:Maddtomography} shown in \cref{fig:6routerpdv}. Each trial collected PDV values from   every router each timestep post queue stabilization and then averaged these over a 10,000 timestep simulation run time, these average PDV results from each trial were then averaged over 100 simulations. This process was repeated with nefarious router's holding probability of 0, 0.2, 0.4, 0.6, and 0.8, with four experiments being conducted with router's $r_1$, $r_2$, $r_3$, and $r_4$ being designated nefarious in each experiment respectively, plots of observed PDV can be seen in \cref{fig:MrouterPDV}. From these it is clear that not only does a nefarious router delaying packets increase its 
-\begin{figure}
+\subsection*{Packet Delay Inference Validity}
+To test our core hypothesis that packet delay variation of a router is a sufficient indicator of whether it is nefariously delaying packet's we consider a baseline 6 router network from \cref{sec:Mnetworkprobing} shown in \cref{fig:6routerpdv}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0\ -\ r_5$ designed as nefarious in each experiment respectively. Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations was collected from each router every timestep post queue stabilization. Plots of collected router packet delay variation (PDV) are shown in \cref{fig:MrouterPDV}. It is clear that the nefarious router's PDV differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDV ~3232 times larger than that of the 2nd largest PDV. Of interest is the behaviour of $r_0$ and $r_5$ when nefarious, although these routers connect to half as many routers as the others they exhibit their nefarious behaviour can still be inferred through PDV.\par
+As expected when the nefarious router has a hold probability of 0 it PDV mimics that of a non-nefarious router, however when the nefarious router has a very high hold probability $\gtrapprox 0.8$ we see the PDV regress to that of the rest of the network. We expect this behaviour is due to the use of variance as a metric, if a router is delaying all packets traversing it then its queue length will be consistently large or the queue will be completely full, varying little.
+\begin{figure}[H]
     \centering
     \tikzsetnextfilename{6routerpdvtopology}
     \begin{tikzpicture}[
@@ -94,30 +95,52 @@ To test our hypothesis that packet delay variation of a router increases proport
     \caption{6 router network.}
     \label{fig:6routerpdv}
 \end{figure}
+If we instead consider the average router queue length collected in the same experiment in  we see
 
-\begin{figure}
-    \centering
+
+\begin{figure}[H]
+    \centering 
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/true_PDV_1.png}
+        \includegraphics[width=\textwidth]{figs/results/1_nef.png}
         \caption[]{$r_1$ nefarious.}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/true_PDV_2.png}
+        \includegraphics[width=\textwidth]{figs/results/2_nef.png}
         \caption[]{$r_2$ is nefarious.}
     \end{subfigure}
     \hfill
     \centering
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/true_PDV_3.png}
+        \includegraphics[width=\textwidth]{figs/results/3_nef.png}
         \caption[]{$r_3$ nefarious.}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/true_PDV_4.png}
+        \includegraphics[width=\textwidth]{figs/results/4_nef.png}
         \caption[]{$r_4$ nefarious.}
+    \end{subfigure}
+    \hfill
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/0_nef.png}
+        \caption[]{$r_0$ nefarious.}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/5_nef.png}
+        \caption[]{$r_5$ nefarious.}
     \end{subfigure}
     \caption[Results of router level PDV over varying hold probabilities.]{Average PDV over varying nefarious holding probabilities.}
     \label{fig:MrouterPDV}
 \end{figure}
+
+To confirm this trend holds over arbitrary network topologies 30 random graphs were generated with the ER method, subdivided into 3 groups of 10 graphs each with low ($p=0.2$), medium ($p=0.5$), and high ($p=0.85$) levels of connectivity and 30 were generated with the BA method. Plots of PDV results are shown in \cref{fig:Rrandgraphpdv} with the PDV of the nefarious router shown against the max PDV over all other routers.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure{Plot of router PDV from rand. graphs}
+    \caption{Caption}
+    \label{fig:Rrandgraphpdv}
+\end{figure}
+
 
 \subsection*{Sympathetic PDV Increase}
 \label{ssec:Rsympathicpdv}
