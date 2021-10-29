@@ -3,77 +3,46 @@
 In this section we introduce our computational representation of networks along with concrete implementations and techniques used for dynamic routing algorithms and finally inference calculation...
 \todo{Needs to be fleshed out once section complete}
 
-\section{Router Identification}
+
+\section{Inferring Nefarious Behaviour}
+\label{sec:Mnetworkprobing}
+    To determine whether a router is behaving nefariously we must establish and verify a quantitative metric that is impacted by this nefarious behaviour. Using tomography we are able to observe end-to-end metrics, the additive metric of packet delay was an appealing option as we expect the nefarious delaying of routers to impact packet delay.
+    
+    Story Plan:
+    \begin{itemize}
+        \item Ability of packet delay metrics to detect nefarious behaviour in 'baseline' network
+        \item Changing nefarious router within baseline
+        \item Does Inference hold over variable network attributes?
+        \begin{itemize}
+            \item Router queue length
+            \item Network background traffic
+            \item Network topology
+        \end{itemize}
+        \item Testing variable queue length and background traffic in the baseline network
+        \item Sigmoid curve from PDA being a likely candidate (as we want to infer when a router is very nefarious) warrants further investigation Need to mention Dogbox, TRF, and Levenberg–Marquardt.
+        \item Determining relationship between PDA-holdprob curve and network attributes of queue length and background traffic.
+        \begin{itemize}
+            \item Curve fitting relationship using popular minimization algorithms avaliable in scipy: dogbox, trf and lm.
+            \item Selected the best curve fitting minimization for use.
+        \end{itemize}
+        \item Generated network topologies - 50 ER and 50 BA with varying \# of routers from 30-100
+        \item Varying queue length and background traffic in each of these generated configurations, measuring PDA.
+        \item Real world topologies with varying \# of routers - testing impact of queue length and background traffic.
+        \item Validate weather the sigmoid and network attributes hold over arbitrary generated and real world topologies.
+    \end{itemize}
+    
+    \todo{Explain why the second order stat of variation is better for clock sync, but show accuracy issues vs first order average (reference results).}
+
+    
+\section{Identifying Router Metrics}
 \label{sec:Maddtomography}
 Todo:
 \begin{itemize}
     \item Tomography as a linear system with a linear solution (note can include multiple routers in probe paths for identifiability just need to divide by the number of times it appears).
-    \item Explain why the second order stat of variation is better for clock sync and accuracy compared to first order average (Point to results).
 \end{itemize}
 
-Need to discuss the stopping of probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
-
-\section{Optimizing Network Probing}
-\label{sec:Moptprobing}
-\subsection{Parsimonious Probe Path Selection}
-\label{ssec:Mpppselection}
-
-\subsection{Probe Allocation}
-\label{ssec:Mpallocation}
-
-As probes traversing different nodes and different probes traversing the same node have an independent effect on $q$ we can develop an aggregation of all measurements in $\vec{q}$ assuming $r\in R, q_r \sim \mathcal{N}(0, \theta_r)$ where the variance $\theta_r$ is unknown. Using this this we aim to infer an estimation of $\vec{\theta}$ from our monitor-to-monitor measurements $\vec{q}$. To formalise our knowledge of the network from probing we adapt a standard PDV PMF from \cite{he_network_2021} where $\mathcal{M} = \sum_{r\in p}\theta_r$ in \cref{eq:pdvobservationmodel} and denote the corresponding log-likelihood function as $\widehat{\mathcal{L}}(q, p)$.
-\begin{equation}
-\label{eq:pdvobservationmodel}
-    f_{Q|\vec{\theta},\; \vec{\phi}}(q,\;p) = \phi_p \sqrt{2\pi\mathcal{M}}^{\ q^2/{2\mathcal{M}_r}}
-\end{equation}
-Using $\widehat{\mathcal{L}}(q, p)$ we are able to represent a network as a FIM, from this the CRB can be posed as a metric representing the lower bound on the accuracy of our inference, we elaborate on the specifics of this representation in \cref{sec:Mnetworkprobing}. Using this CRB however we can show that the equal allocation of probes over paths is a sub optimal approach to probing. Consider the example network in \cref{fig:fimex3routereg} we define three probe paths $p_0$, $p_1$, and $p_3$ traversing $r_0\rightarrow r_2$, $\ r_1\rightarrow r_2$, $\ r_0\rightarrow r_1\rightarrow r_2$, and the reserve directions respectively.
-\begin{figure}[H]
-    \centering
-    \tikzsetnextfilename{3routertopology}
-    \begin{tikzpicture}[
-        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
-        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
-        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
-        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
-        
-        % Routers
-        \node[router] (r0) at (-1.5,1.5) {$r_0$};
-        \node[router] (r1) at (-1.5,-1.5)  {$r_1$};
-        \node[router] (r2) at (1.5,0) {$r_2$};
-        %Switches
-        \node[monitor](s00) at (-3,1.5)   {$s_{0,0}$};
-        \node[monitor](s10) at (-3,-1.5)   {$s_{1,0}$};
-        \node[monitor](s20) at (3,0)   {$s_{2,0}$};
-
-        %Links
-        \draw[-] (r0.east) -- (r2.west);
-        \draw[-] (r1.east) -- (r2.west);
-        \draw[-] (r0.west) -- (s00.east);
-        \draw[-] (r1.west) -- (s10.east);
-        \draw[-] (r2.east) -- (s20.west);
-        
-        % Probe path visualizations.
-        \node at (1,1.5) {$p_0$};
-        \draw[dashed, line width=.5mm, <->] (-3,2.25) .. controls (0.5,2.5) and (0.5,0.25) .. (3, 0.5);
-        \node at (1,-1.5) {$p_1$};
-        \draw[dashed, line width=.5mm, <->] (-3,-2.25) .. controls (0.5,-2.5) and (0.5,-0.25) .. (3, -0.5);
-        \node at (-0.75,0) {$p_3$};
-        \draw[dashed, line width=.5mm, <->] (-3,0.75) .. controls (1.25,1.25) and (1.25,-1.25) .. (-3, -0.75);
-
-    \end{tikzpicture}
-    \caption{Example 3 router network with probe paths explicitly noted.}
-    \label{fig:fimex3routereg}
-\end{figure}
-
-We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [0.33, 0.33, 0.33],  $\phi_1$ = [0.1, 0.8, 0.1], and $\phi_2$ = [0.8, 0.1, 0.1]. As there are no nefarious routers each router has an equal expected true PDV, let these true PDV's be $r_0=1, r_1=1, r_2=1$, the CRB of each probe allocation is then $\phi_0$=2.69, $\phi_1$=5.97, $\phi_2$=5.97. Recalling that the CRB provides a lower bound on inferential accuracy, the equal allocation of probes between paths results in the lowest inferential accuracy, this also holds when nefarious behaviour is included. Suppose the case of $r_1$ being nefarious with a $\frac{1}{3}$ probability of holding a packet any timestep, resulting in an increased PDV of 3 the CRB of each probing scheme is then $\phi_0$=1.51, $\phi_1$=4.24, $\phi_2$=2.05. Although each probing scheme performs worse it is clear that $\phi_0$ is comparatively even worse at detecting the increased PDV of the nefarious router than the case of no nefarious nodes. Note for comparison that in the previous case of being $r_1$ nefarious a pseudo optimal probing allocation $\phi_{optimal}$ = [0.0, 0.5, 0.5] results in a CRB of 33.67.
-
-\section{Nefarious Router Inference}
-\label{sec:Mnetworkprobing}
-    \begin{mdframed}\textbf{FROM BACKGROUND}\\
-    In our context we can view these $\vec{\theta}$ as network properties or more productively - as a network is composed only of links and nodes - the link  and node level information which we are looking to infer from our analysis.
-    Let a router's queuing delay \gls{qlen} have the probability distribution giving by the probability density function (PDF) $f_{Q|\theta_r}(q)$. We assume that that the derivative of the probability distribution $\partial f_{Q|\theta_r}(q)/\partial \theta_r$ exists and is finite (\ie $r = 1, ..., |R|$). The Fisher information matrix (FIM) is then the $|R|\times |R|$ matrix:
-
-    \textbf{NOTATION FOR PDV SECTION FORMALIZATION}:
+    \begin{mdframed}
+    \textbf{NOTATION FOR PDV SECTION FORMALIZATION}:\\
     Probe path probabilities: Each probe packet is sent along a probe path $p$ with a probability of $\phi_p$, given there are multiple paths within any non-trivial model we represent them all as $\vec{\phi}=\forall p\in P^*, \phi_p$ where $|\vec{\phi}|=|P^*|$, $\phi_p \geq 0$ and $\sum_{p\in P^*}\phi_p = 1$
     
     The parameter vector $\vec{\theta}$ is the vector of length $|R|$ containing the parameter governing each $q\in Q$ where $ q_x \sim \theta_x$ or more formally $\vec{\theta}=\forall r\in R, \theta_r$.
@@ -83,21 +52,12 @@ We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [
     Let $f_{Q|\vec{\theta}}(q)$ represent the probability of observing the value $q$ from monitor-to-monitor probe path $p\in P^*$ given the node parameter $\theta_x$ governing $Q_x$.
     
     Note that we can represent a tomographic problem as a system of $P^*f'(\theta)=\mathcal{M}$ where $f'$ is a one-to-one correspondence function of $\theta$ and $\mathcal{M}$ is a matrix of monitor-to-monitor metrics we collect from our probing where $\mathcal{M}_p = (q_1,q_2,\ldots, q_n)$. For ease of notation let $|\mathcal{M}_p|$ be the number of metrics ($n$) we collect over path $p$. Note that for aggregation of measurements after collection $\forall p\in P^*, \forall r\in p, \mathcal{M}=\sum_{r\in p}\theta_r$.
-\end{mdframed}
+    \end{mdframed}
     \todo{Integrate this into this section}
 
-    To best utilise previous work on tomography we generalise our network as an $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where the $i$th$\times j$th entry is a 1 if those two routers are connected by a link and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use the terms interchangeable. Using this notation we are able to express the graph shown in \cref{fig:6routersample} where $M=\{s_{0,0},s_{5,0}\}$ as the adjacency matrix $A$:
-    \begin{equation}\label{eq:6routeradjmatrix}
-        A = \begin{bmatrix} 
-            0 & 1 & 1 & 0 & 0 & 0 \\
-            1 & 0 & 1 & 1 & 1 & 0 \\
-            1 & 1 & 0 & 0 & 0 & 0 \\
-            0 & 1 & 1 & 0 & 1 & 1 \\
-            0 & 1 & 1 & 1 & 0 & 1 \\
-            0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
-    \end{equation}
+    To best utilise previous work on tomography we generalise our network as an $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where the $i$th$\times j$th entry is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. From this notation we are able to express the network shown in \cref{fig:6routersample} where $M=\{s_{0,0},s_{5,0}\}$ as the adjacency matrix $A$:
     
-    \begin{figure}
+    \begin{figure}[H]
         \centering
         \tikzsetnextfilename{6routertopology}
         \begin{tikzpicture}[
@@ -147,7 +107,17 @@ We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [
         \label{fig:6routersample}
     \end{figure}\par
     
-    This method of network representation has several advantages for both practical implementation and theoretical analysis using tomographic methods. On the practicality front it interfaces seamlessly with prefab modules such as those provided by igraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code for future analysis projects. On the analytical front this representation lends itself to computation of probe path matrices which are crucial for our method of gaining tomographic inference. \par
+    \begin{equation}\label{eq:6routeradjmatrix}
+        A = \begin{bmatrix} 
+            0 & 1 & 1 & 0 & 0 & 0 \\
+            1 & 0 & 1 & 1 & 1 & 0 \\
+            1 & 1 & 0 & 0 & 0 & 0 \\
+            0 & 1 & 1 & 0 & 1 & 1 \\
+            0 & 1 & 1 & 1 & 0 & 1 \\
+            0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
+    \end{equation}
+    
+    This method of network representation has several advantages for both practical implementation and analysis with tomographic techniques. On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
     As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. The set of probe paths used $\gls{p*}$ is represented using a $|\gls{p*}|\times |\gls{routers}|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $\gls{p*}$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
     \[
         P'=\begin{bmatrix}
@@ -199,20 +169,81 @@ We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [
         \forall r \in R_I,\;r \in M 
     \end{equation}
     \todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
-    
+
+
+Need to discuss halting probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
+
+\section{Optimizing the Tomographic Pipeline}
+\label{sec:Moptprobing}
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{tomographicpipeline}
+    \begin{tikzpicture}
+        \node[draw,minimum width=6cm] (A) at (0,4.5) {Monitor Node Selection};
+        \node[draw,minimum width=6cm] (B) at (0,3) {Probe Path Selection};
+        \node[draw,minimum width=6cm] (C) at (0,1.5) {Probe Packet Allocation};
+        \node[draw,minimum width=6cm] (D) at (0,0) {Inferential Calculation};
+        
+        \draw[->, very thick] (A) -- (B);
+        \draw[->, very thick] (B) -- (C);
+        \draw[->, very thick] (C) -- (D);
+    \end{tikzpicture}
+    \caption{The Tomographic Pipeline.}
+\end{figure}
+
+\subsection{Monitor Placement}
 
 \subsection{Parsimonious Probe Path Selection}
-\label{ssec:Mparsppselection}
-\todo{How we apply techniques from the content covered in background in our model.}
-As established in \cref{ssec:Bparsppselection} the choice of a minimal $P^*$ from \cref{eq:minpp} in a non-trivial task.
+\label{ssec:Mpppselection}
 
-\section{Queue Stabilisation}
-\label{sec:Mqueuestabilisation}
-\todo{Describe how we generated results for steady queue lengths. Maybe remove this and just present in results as it's essentially just running the simulation and saving router level queue lengths each time step??}
+\subsection{Probe Allocation}
+\label{ssec:Mpallocation}
 
-\subsection{OSPF Routing}
-\label{ssec:Mospfrouting}
-\todo{Explain implementation of link state routing and update interval in the model.}
+As probes traversing different nodes and different probes traversing the same node have an independent effect on $q$ we can develop an aggregation of all measurements in $\vec{q}$ assuming $r\in R, q_r \sim \mathcal{N}(0, \theta_r)$ where the variance $\theta_r$ is unknown. Using this this we aim to infer an estimation of $\vec{\theta}$ from our monitor-to-monitor measurements $\vec{q}$. To formalise our knowledge of the network from probing we adapt a standard PDV PMF from \cite{he_network_2021} where $\mathcal{M} = \sum_{r\in p}\theta_r$ in \cref{eq:pdvobservationmodel} and denote the corresponding log-likelihood function as $\widehat{\mathcal{L}}(q, p)$.
+\begin{equation}
+\label{eq:pdvobservationmodel}
+    f_{Q|\vec{\theta},\; \vec{\phi}}(q,\;p) = \phi_p \sqrt{2\pi\mathcal{M}}^{\ q^2/{2\mathcal{M}_r}}
+\end{equation}
+Using $\widehat{\mathcal{L}}(q, p)$ we are able to represent a network as a FIM, from this the CRB can be posed as a metric representing the lower bound on the accuracy of our inference, we elaborate on the specifics of this representation in \cref{sec:Mnetworkprobing}. Using this CRB however we can show that the equal allocation of probes over paths is a sub optimal approach to probing. Consider the example network in \cref{fig:fimex3routereg} we define three probe paths $p_0$, $p_1$, and $p_3$ traversing $r_0\rightarrow r_2$, $\ r_1\rightarrow r_2$, $\ r_0\rightarrow r_1\rightarrow r_2$, and the reserve directions respectively.
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{3routertopology}
+    \begin{tikzpicture}[
+        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
+        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
+        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
+        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
+        
+        % Routers
+        \node[router] (r0) at (-1.5,1.5) {$r_0$};
+        \node[router] (r1) at (-1.5,-1.5)  {$r_1$};
+        \node[router] (r2) at (1.5,0) {$r_2$};
+        %Switches
+        \node[monitor](s00) at (-3,1.5)   {$s_{0,0}$};
+        \node[monitor](s10) at (-3,-1.5)   {$s_{1,0}$};
+        \node[monitor](s20) at (3,0)   {$s_{2,0}$};
+
+        %Links
+        \draw[-] (r0.east) -- (r2.west);
+        \draw[-] (r1.east) -- (r2.west);
+        \draw[-] (r0.west) -- (s00.east);
+        \draw[-] (r1.west) -- (s10.east);
+        \draw[-] (r2.east) -- (s20.west);
+        
+        % Probe path visualizations.
+        \node at (1,1.5) {$p_0$};
+        \draw[dashed, line width=.5mm, <->] (-3,2.25) .. controls (0.5,2.5) and (0.5,0.25) .. (3, 0.5);
+        \node at (1,-1.5) {$p_1$};
+        \draw[dashed, line width=.5mm, <->] (-3,-2.25) .. controls (0.5,-2.5) and (0.5,-0.25) .. (3, -0.5);
+        \node at (-0.75,0) {$p_3$};
+        \draw[dashed, line width=.5mm, <->] (-3,0.75) .. controls (1.25,1.25) and (1.25,-1.25) .. (-3, -0.75);
+
+    \end{tikzpicture}
+    \caption{Example 3 router network with probe paths explicitly noted.}
+    \label{fig:fimex3routereg}
+\end{figure}
+
+We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [0.33, 0.33, 0.33],  $\phi_1$ = [0.1, 0.8, 0.1], and $\phi_2$ = [0.8, 0.1, 0.1]. As there are no nefarious routers each router has an equal expected true PDV, let these true PDV's be $r_0=1, r_1=1, r_2=1$, the CRB of each probe allocation is then $\phi_0$=2.69, $\phi_1$=5.97, $\phi_2$=5.97. Recalling that the CRB provides a lower bound on inferential accuracy, the equal allocation of probes between paths results in the lowest inferential accuracy, this also holds when nefarious behaviour is included. Suppose the case of $r_1$ being nefarious with a $\frac{1}{3}$ probability of holding a packet any timestep, resulting in an increased PDV of 3 the CRB of each probing scheme is then $\phi_0$=1.51, $\phi_1$=4.24, $\phi_2$=2.05. Although each probing scheme performs worse it is clear that $\phi_0$ is comparatively even worse at detecting the increased PDV of the nefarious router than the case of no nefarious nodes. Note for comparison that in the previous case of being $r_1$ nefarious a pseudo optimal probing allocation $\phi_{optimal}$ = [0.0, 0.5, 0.5] results in a CRB of 33.67.
 
 \section{Model Robustness}
 \label{sec:Mmodelrobustness}

@@ -1,6 +1,12 @@
-\begin{appendices}
-\chapter{Verbose Queue Length Stabilisation Results Over LS Update Intervals}
-\section{Average Queue Length}
+\appendixpage
+\appendix
+\chapter*{Appendices}
+\addcontentsline{toc}{chapter}{List of Appendices}
+\renewcommand{\thesection}{\Alph{section})}
+\renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+
+\section{Verbose Queue Length Stabilisation Results Over LS Update Intervals}
+\subsection{Average Queue Length}
     \begin{figure}[h]
         \centering
         \begin{subfigure}[b]{0.475\textwidth}
@@ -46,7 +52,7 @@
         \end{subfigure}
     \end{figure}
     
-\section{Variance of Queue Length}
+\subsection{Variance of Queue Length}
 \lfix{Trim variance graphs to same length as averages}
     \begin{figure}[H]
         \centering
@@ -93,4 +99,45 @@
             \label{fig:qvar-10000}
         \end{subfigure}
     \end{figure}
-\end{appendices}
+
+\section{Queue Stabilization}
+\label{sec:Aqueuestabilization}
+
+\todo{Describe how we generated results for steady queue lengths, implementation of link state routing and update interval in the model}
+
+\captionsetup{justification=centering}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/average_of_1,500,10000.png}
+        \caption{Average router queue buffer length.}
+        \label{fig:Ravgq}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/average_of_1,500,10000.png}
+        \caption[]{Variance of router queue buffer length.}
+        \label{fig:Rvarq}
+    \end{subfigure}
+    \caption{Mean and variance of router queue buffer lengths over link-state update intervals 1, 500, and 10,000].}
+\end{figure}
+
+\begin{table}[H]
+    \centering\sisetup{table-number-alignment=center}
+    \begin{tabular}{@{}lS[table-format=1.2e1]c@{}}
+        \toprule
+        \multirow{2}{*}{\makecell{LS Update \\ Interval}} & \multicolumn{2}{@{}S@{}}{\textbf{Time-step range}}\\
+        \cmidrule(rl){2-3}
+        & {$\leq$ 20,000} & {> 20,000} \\
+        \midrule
+        1       & 1.07E4 & 6.25 \\ 
+        10      & 1.02e4 & 4.88 \\
+        50      & 1.01e4 & 3.21 \\
+        250     & 1.07e4 & 5.06 \\
+        500     & 1.01e4 & 6.05 \\
+        1,000   & 1.03e4 & 3.47 \\
+        10,000  & 1.12e4 & 5.22 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Variance pre and post queue length stabilization point}
+\end{table}

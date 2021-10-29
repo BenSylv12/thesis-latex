@@ -5,6 +5,7 @@
 \WarningFilter*{caption}{Unknown document class} % Funky business with the template's caption package
 
 % Package imports
+\usepackage{siunitx}
 \usepackage{svn-multi}
 \svnid{$Id$}
 \usepackage{prelim2e}
@@ -28,7 +29,8 @@
 \usepackage{blkarray, bigstrut}
 \usepackage{url}
 \usepackage{multirow}
-\usepackage[titletoc]{appendix}
+\usepackage{makecell}
+\usepackage{appendix}
 \usepackage{tikz}
 \usepackage{xparse}
 \usepackage[symbols,nogroupskip,nonumberlist,sort=def]{glossaries-extra}
@@ -38,10 +40,12 @@
 \usepackage{relsize}
 \usepackage{xspace}
 \usepackage{listings}
-\usepackage[color=todocolor, colorinlistoftodos]{todonotes}
+\usepackage[obeyDraft, color=todocolor, colorinlistoftodos]{todonotes}
 \usepackage{setspace}
 \usepackage{ifthen}
 \usepackage{braket}
+\usepackage{diagbox}
+\usepackage{booktabs}
 \usepackage[hyperindex=true,
 			bookmarks=true,
             pdftitle={Improving Stochastic Network Tomographic Models for Attack Detection}, 
@@ -67,7 +71,10 @@
 \renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
 \makeatother
 
+% \renewcommand{\appendixtocname}{List of appendices}
+
 \urlstyle{sf}
+
 
 \renewcommand{\sfdefault}{uop}
 \def\UrlBreaks{\do\/\do-}
@@ -187,6 +194,7 @@
 \bibliographystyle{anuthesis}
 % \nocite{*}
 \bibliography{thesis}
+% \restoreapp
 \input{appendix}
 \printindex
 \end{document}

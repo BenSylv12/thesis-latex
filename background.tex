@@ -2,7 +2,7 @@
 \label{cha:background}
 
 In this chapter we aim to provide the reader with a concrete understanding of key concepts utilised within our new tomographic technique along with a conceptual grasp on metrics and methods used to analyse and verify it. We begin with the theory and intuition behind previously and currently employed random network generation algorithms in \cref{sec:Bgraphgeneration}, providing the reader with a deeper understanding of terms from \cref{ssec:Icurrentmodels}.\par
-To explore findings within previous work relating to the effect of monitor placements strategy on tomographic accuracy, we introduce established algorithms for placement of these observable monitors within networks from literature in \cref{sec:Bmonitorplacement}. Next we establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints, we also separate routing into four classes according to these restraints, justifying a focus on the \cbr and \cfr mechanisms for subsequent sections.\par
+To explore findings within previous work relating to the effect of monitor placements strategy on tomographic accuracy, we introduce established algorithms for placement of these observable monitors within networks from literature in \cref{ssec:Bmonitorplacement}. Next we establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints, we also separate routing into four classes according to these restraints, justifying a focus on the \cbr and \cfr mechanisms for subsequent sections.\par
 Next we give generalised explanations of key statistical concepts, concisely summarizing their realization within our work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization} with the intent of giving a more verbose grounding of these in the context of network tomography within \cref{cha:methodology}. Lastly we tie all aforementioned concepts together through their use within our novel tomographic model and explore existing implementations of \pdv tomography within the network tomographic corpus in \cref{sec:Maddtomography}.
 
 \section{Graph Generation}
@@ -14,17 +14,6 @@ The current network generation strategy follows that of the Erdős–Rényi (ER)
 This random graph generation strategy is intuitive in its simplicity however has several problems when used to generate graphs analogous to computer networks. The most prominent shortcomings are in the node degree distribution and presence of so called ‘isolated nodes’. A key underlying assumption of the ER model is that each edge between two nodes is equally likely to occur within a graph. The natural consequence of this assumption is that the distribution of node degree’s (number of connected edges) within the graph approximates a Poisson distribution (\cite{albert-laszlo_scale-free_2003}). Such random networks are referred to as exponential networks as the probability that a node is connected to $n$ other nodes decreases exponentially as $n\to\infty$.\par
 Complex networks however have not been observed to follow a random pattern but rather that, irrelevant of age, function or scope converge to a similar architecture as shown in \cite{albert_diameter_1999}’s mapping of the world wide web . This network architecture has been dubbed as scale-free and is characterised by the distribution of node degree following a power-law where the probability of a node having $k$ edges $P(k)$  is proportional to $\frac{1}{kn}$ for a network of $n$ nodes. This property is present in graphs generated using the Barabási–Albert (BA) model, as well as the Watts–Strogatz model; these generation techniques among others are further discussed in \cref{cha:background}.\par
 As the network being generated and analyzed continues to increase in size we expect its behaviour and structure to become increasingly complex. Given this complex nature the scale-free property of graph generation is highly desirable for generation of pseudo realistic networks.
-
-\section{Monitor Placement}
-\label{sec:Bmonitorplacement}
-Within \gls{network} there is a set of switches \gls{switches} analogous to connections with external networks, such as the internet as outline in \cref{cha:intro}. Within this set of switches we distinguish a set of monitors $\gls{monitors}\subseteq \gls{switches}$ which we are able to directly observe and control. In all forms of tomography use observations obtained from $M$ to infer the state of \gls{network}, as such the selection of \gls{monitors} has a substantial impact on the inference we are able to obtain regarding \gls{network}. Previous work has explored placement strategies of \gls{monitors} given the topology of \gls{network}, we focus on the three algorithms derived from these strategies in \cite{ma_optimal_2015}:
-\begin{enumerate}
-    \item Random placement algorithm
-    \item Greedy placement algorithm
-    \item Ma's algorithm
-\end{enumerate}
-
-\todo{Show monitor placement examples in a set topology (7 router like Barnes)}
 
 \section{Routing Mechanisms}
 \label{sec:Broutingmechanisms}
@@ -82,7 +71,7 @@ Note that we assume that the MLE is unbiased, meaning that for any value of $\th
 \subsection{Fisher Information Matrices}
 \label{ssec:Bfisherinformation}
 
-To understand the multidimensional case of a matrix one must first understand the single dimensional case, in this case the amount of information a single continuous random variable $X$ contains about the parameter $\theta$ governing its distribution is known as its Fisher information $I(\theta)$. This governance of $\theta$ of $X$ can be expressed as the parametric probability distribution function (PDF) $f(X\ |\ \theta) = y$ where $y$ is the value of the function we observe. From this we define $f_{X\,|\,\theta}(y) = \probP(y\ |\ f(X|\theta))$ or intuitively the probability of observing the value $y$ from $X$ given the parameter $\theta$. The Fisher information is simply a measure of how accurately an single observation $y$ or more typically a set of observations $\vec{y}$ determines $\theta$. For example consider two Gaussian PDFs: $a = \mathcal{N}(X\ |\ \vec{\theta}_a)$ and $b = \mathcal{N}(X\ |\ \vec{\theta}_b)$ where $\vec{\theta}_a = \{\mu=0, \sigma^2=10\}$ and $\vec{\theta}_b = \{\mu=0,\sigma^2=0.5\}$. Plots of the log-likelihood function for a set of $n$ observations $\vec{y}$ from a and b are given in \cref{fig:loglikelihoods} a and b respectively.
+To understand the multidimensional case of a matrix one must first understand the single dimensional case, in this case the amount of information a single continuous random variable $X$ contains about the parameter $\theta$ governing its distribution is known as its Fisher information $I(\theta)$. This governance of $\theta$ of $X$ can be expressed as the parametric probability distribution function (PDF) $f(X\ |\ \theta) = y$ where $y$ is the value of the function we observe. From this we define $f_{X\,|\,\theta}(y) = \probP(y\ |\ f(X|\theta))$ or intuitively the probability of observing the value $y$ from $X$ given the parameter $\theta$. The Fisher information is simply a measure of how accurately a single observation $y$ or more typically a set of observations $\vec{y}$ determines $\theta$. For example consider two Gaussian PDFs: $a = \mathcal{N}(X\ |\ \vec{\theta}_a)$ and $b = \mathcal{N}(X\ |\ \vec{\theta}_b)$ where $\vec{\theta}_a = \{\mu=0, \sigma^2=10\}$ and $\vec{\theta}_b = \{\mu=0,\sigma^2=0.5\}$. Plots of the log-likelihood function for a set of $n$ observations $\vec{y}$ from a and b are given in \cref{fig:loglikelihoods} a and b respectively.
 \begin{figure}
     \centering
     \begin{subfigure}{0.475\textwidth}
@@ -180,7 +169,31 @@ For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$,
 
 \section{Optimization Techniques}
 \label{sec:Boptimization}
-The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing by decomposing the measurement process into two stages: selection of paths to probe and allocation of probes over these paths. In \cref{ssec:Bparsppselection} we address the first of these stages, explaining the desire for a minimal number of paths and presenting Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we cover relevant core concepts in the field of optimum experimental design with the intent of using these in the context of probe allocation to paths in \cref{ssec:Mpallocation}.
+The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing by decomposing the measurement process into three stages: placement of monitorable nodes surrounding the network, selection of paths to probe between monitorable nodes and allocation of probes over these paths. \cref{ssec:Bmonitorplacement} present three typical approaches for choice of monitors to observe: random placement, greedy placement, and ma's algortim, additionally highlighting that only the Ma's algortim guarantees node identifiability. In \cref{ssec:Bparsppselection} we address the first of these stages, explaining the desire for a minimal number of paths and presenting Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we cover relevant core concepts in the field of optimum experimental design with the intent of using these in the context of probe allocation to paths in \cref{ssec:Mpallocation}.
+
+\subsection{Monitor Placement}
+\label{ssec:Bmonitorplacement}
+Within \gls{network} there is a set of switches \gls{switches} analogous to connections with external networks \ie the internet, as outline in \cref{cha:intro}. Within this set of switches we distinguish a set of monitors $\gls{monitors}\subseteq \gls{switches}$ which we are able to directly observe and control. In all forms of tomography observations obtained from $M$ are used to infer the state of \gls{network}, as such the selection of \gls{monitors} has a substantial impact on the inference we are able to obtain regarding \gls{network}. Previous work has explored placement strategies of \gls{monitors} given the topology of \gls{network}, we focus on the three algorithms derived from these strategies in \cite{ma_optimal_2015}: Random placement, Greedy placement, and Ma's algorithm. In each algorithm we assume a budget of $m$ monitors that can be placed around the network.\par
+Random placement is a trivial strategy where $m$ switches are selected at random for observation, hence becoming monitors. A more nuanced approach to monitor placement is the Greedy Monitor Placement Algorithm, this placement strategy places monitors as far apart as possible within the network, avoiding clumping of monitors together in order to cover as much of the network with probing as possible. After this selection, if there are any monitors remaining in the budget $m$ they are chosen at random. We provide an description of the algorithm courtesy of \cite{barnes_stochastic_2020} in \cref{alg:greedyplacement}.\par
+The final and most complex strategy is Ma's algorithm, initially established in \cite{ma_optimal_2015} aims to achieve optimal monitor placement within arbitrarily network topologies. Optimal monitor placement is defined as the placement which enables the maximum information to be gained from network probing. At it's core this is an extension of the greedy placement algorithm which accounts for two special cases of routers: those adjacent to only a single or a pair of routers. These cases are explicitly accounted for as in both a monitor must be placed on at least two of the nodes within the sub-network the routers form else no probe packets would be able to pass through, let along uniquely identify, each comprising router. After placement of monitors to cover these special cases of isolated router connectivity the greedy approach is used for the remaining placement.
+\begin{algorithm}
+    \KwData{Network topology $A$, the set of router's $R$ and the number of monitors to be placed $m$.}
+    \KwResult{Set of monitor nodes $M$}
+    
+    Calculate the set of shortest paths between all nodes using Dijkstra's algorithm\;
+    $M\gets \varnothing$\;
+    $U\gets R$\;
+    \While{$|M|<m \&\& U\neq\varnothing$}{
+        $S\gets$ shortest path which contains the largest number of routers in $U$\;
+        $M\gets$ End nodes of this path\;
+        $U\gets U-S$\;
+    }
+    \If{$|M|<m$}{
+        $M\gets$ random selection of $m-|M|$ nodes\;
+    }
+    \caption{Greedy Monitor Placement}
+    \label{alg:greedyplacement}
+\end{algorithm}
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Bparsppselection}

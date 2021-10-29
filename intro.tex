@@ -68,7 +68,7 @@ The accumulation of all packets sent between each node in the network (referred 
 Due to this discretization of network traffic, packets (as one would anticipate) do not traverse from sender to receiver instantly, but rather are delayed throughout their path. We adopt terminology from the authoritative work of \cite{kurose_computer_2013} and decompose this delay into four classes: processing, transmission, propagation, and queuing delays. Processing delay is the time required for a network component to analyse the requirements of a packet and action on those requirements. Transmission delay is simply the time taken for the link interface of a network component to push the physical bits representing the information onto the transmission interface (i.e. fibre, copper, wireless...). Propagation delay is the time taken for the signal to traverse the transmission interface from sender to receiver, largely dependent on the type of medium and physical distance between components. Lastly, queuing delay for the purposes of our work is defined as the delay a packet experiences waiting in the buffer of a router, and has begun to be explored explicitly in previous work.\par
 As multiple packets in existing models may be forwarded to a single router each time step and each router is only able to perform one forward a time step these packets can accumulate in the respective routers’ queues, awaiting forwarding. These router queue lengths are therefore analogous to queuing delays in real world systems. The work of \cite{barnes_stochastic_2020} considers only the class of queuing delays when dealing with packet delay measurements, where other work on stochastic tomography \cite{kolar_distributed_2020}, \cite{he_fisher_2015} makes no distinction between delay classes, instead dealing only with the generalised concept. As noted in \cite{telchemy_impact_2006} in realistic applications, propagation and processing delays are negligible, we therefore focus on primarily extending the work of \cite{barnes_stochastic_2020} and their focus on queuing delays.\par
 In addition to this we explore impacts of the cumulation of all delay classes on our model via implementation in real network simulators within \cref{sec:Rrealnetworkperformance}. Although all packets in a network experience these delays, the magnitude of the delays is ultimately dependent on the number of packets within the system at any given point in time, or as it is commonly referred to, the traffic intensity.\par
-Traffic intently is a result of the number of packet sent over a network by nodes, generation of such network traffic has been shown to be binomial distribution (\cite{barnes_stochastic_2020}) over a set time window which approaches a Poisson distribution over a large enough number of time steps. From (\cite{barnes_stochastic_2020}), where $n$ denotes the number of time steps, $k$ being the number of packets sent and $s$ being the probability on any given time step that a packet will be sent:
+Traffic intensity is a result of the number of packet sent over a network by nodes, generation of such network traffic has been shown to be binomial distribution (\cite{barnes_stochastic_2020}) over a set time window which approaches a Poisson distribution over a large enough number of time steps. From (\cite{barnes_stochastic_2020}), where $n$ denotes the number of time steps, $k$ being the number of packets sent and $s$ being the probability on any given time step that a packet will be sent:
 \[\lim_{n\to\infty} \frac{n!}{k!(n-k)!}s^k (1-s)^{n-k} =\frac{s^k e^{-s}}{k!}\]
 This known distribution of traffic intensity is key in the current body of work as it allows for the traffic being sent from a node to be represented as a random variable S with a known distribution and a value of 1 or 0 depending on if a packet is sent or not. \par
 Similarly to that of packets, queue lengths and consequently queuing delay can be expressed as a random variable \gls{qlen}. Prior work assuming constant average traffic intensity has shown that \gls{qlen} both converges to a steady state over time and, given its dependency on the queue length at the previous time step, is a Markov process (\cite{barnes_stochastic_2020}). However, \gls{qlen} for each router is a consequence of not only the number of packets sent $S$, but also the paths these packets take through the network; the routing method used by the network therefore must be scrutinised to utilize a Markov chain model to quantify \gls{qlen} as shown in \cite{barnes_stochastic_2020}.\par
@@ -150,13 +150,18 @@ Consider a network with 4 routers connected in a ring topology, with monitored s
         \draw[-] (r2.east) -- (r3.west);
         \draw[-] (r0.west) -- (s00.east);
         \draw[-] (r3.east) -- (s30.west);
-
+        
+        % Probe path visualizations.
+        \node at (1.75,1.75) {$p_0$};
+        \draw[dash pattern=on 3pt off 5pt, line width=.5mm, <->] plot[smooth, tension=.2] coordinates{(-4,0.5) (-2.5,0.5) (-2,0.83) (-0.5,2) (0,2.18) (0.5,2) (2,0.83) (2.5,0.5) (4, 0.5)};
+        \node at (1.75,-1.75) {$p_1$};
+        \draw[dash pattern=on 3pt off 5pt, line width=.5mm, <->] plot[smooth, tension=.2] coordinates{(-4,-0.5) (-2.5,-0.5) (-2,-0.83) (-0.5,-2) (0,-2.18) (0.5,-2) (2,-0.83) (2.5,-0.5) (4,-0.5)};
     \end{tikzpicture}
     \caption{Example 4 router network.}
     \label{fig:4routereg}
 \end{figure}
 
-Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at any time step. From \ref{fig:4routereg} we can see that from $s_{0,0}$ to $s_{3,0}$ there are two possible paths a packet may take: $r_0\rightarrow r_1\rightarrow r_3$ and $r_0\rightarrow r_2\rightarrow r_3$, let these paths be $p_1$ and $p_2$ respectively. Assume we send 2,000 probe packets from $s_{0,0}\rightarrow s_{3,0}$, let $\phi_0$ be the probability of $s_{0,0}$ sending a packet along $p_0$ and $\phi_1$ be the probability it sending a packet along $p_1$, we with a probability and  of sending the packet on $p_0$ or $p_1$ respectively.\par
+Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at any time step. From \ref{fig:4routereg} we can see that from $s_{0,0}$ to $s_{3,0}$ there are two possible paths a packet may take: $r_0\rightarrow r_1\rightarrow r_3$ and $r_0\rightarrow r_2\rightarrow r_3$, let these paths be $p_0$ and $p_1$ respectively. Suppose we send 2,000 probe packets between $s_{0,0}$ and $s_{3,0}$, let $\phi_0$ and $\phi_1$ be the probability of a packet being sent along $p_0$ or $p_1$ respectively.\par
 At the end of the measurement interval, the difference in time from each packet being sent from $s_{0,0}$ and the received by $s_{3,0}$ is recorded to calculate the delay of each packet. Ignoring background traffic for illustrative proposes we obtain the delay histograms shown in \cref{fig:ppdelayhist}. Visually we can confirm our expectation of the path with the delaying router $r_1$ having a heavier tailed distribution.\par
 \begin{figure}[H]
     \begin{subfigure}[b]{0.475\textwidth}
@@ -173,14 +178,16 @@ At the end of the measurement interval, the difference in time from each packet 
 From these distributions we compute the mean and delay variance for each path, obtaining values in \cref{tbl:4routerstats}. In this analytical approach the correlation between nefarious router behaviour and path level packet delay becomes glaringly obvious with an almost 200\% increase of delay variance in the path $p_0$ containing the nefarious router $r_1$. Probe path level analysis as we have conducted here however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$, if either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics in \cref{sec:Maddtomography} .
 \begin{table}[H]
     \centering
-    \begin{tabular}{||c c c||}
-        \hline
-        Probe path & $p_0$ & $p_1$ \\ [0.5ex]
-        \hline\hline
+    \begin{tabular}{@{}ccc@{}}
+        \toprule
+        & \multicolumn{2}{c}{\textbf{Probe path}}\\
+        \cmidrule(lr){2-3}
+        Measure & $p_0$ & $p_1$ \\
+        \midrule
         $\bar{x}$   & 3.03 & 2.04 \\
         $\sigma$    & 1.42 & 0.19 \\
-        $\sigma^2$  & 2.03 & 0.03 \\ [1ex]
-        \hline
+        $\sigma^2$  & 2.03 & 0.03 \\
+        \bottomrule
     \end{tabular}
     \caption{Measures of center and spread for packet delays in a 4 router network.}
     \label{tbl:4routerstats}
