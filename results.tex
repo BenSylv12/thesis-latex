@@ -148,11 +148,18 @@ The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, acc
     \caption{Plots of average nefarious router buffer queue length over various hold probabilities.}
     \label{fig:Rvariedqlenpda}
 \end{figure}
-To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in PLOT REFERENCE. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient. Fitting a polynomial model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length. This estimation can allow for the relation to be inverted i.e. given a router's queue length and PDA we can estimate the router's hold probability.
+To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in \cref{fig:Rsigmoidcoefs}. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient. Fitting a polynomial model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length. This estimation can allow for the relation to be inverted i.e. given a router's queue length and PDA we can estimate the router's hold probability.
 \begin{figure}[H]
     \centering
-    \missingfigure{Plot of sigmoid coeffs over varying queue lengths.}
-    \caption{Caption}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_param_c.png}
+        \caption{Gradient at inflection point}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_param_d.png}
+        \caption{X-value of infection point}
+    \end{subfigure}
+    \caption{Plots of parameters of modeled sigmoid for hold probability against router buffer queue length.}
     \label{fig:Rsigmoidcoefs}
 \end{figure}
 
