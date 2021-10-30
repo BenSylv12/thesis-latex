@@ -8,9 +8,9 @@ Finally we construct a simulated network using real world topological and traffi
 \label{sec:Rnefarouterdetection}
 
 \subsection{Packet Delay Inference Validity}
-To test our core hypothesis that packet delay metrics are a valid indicator of nefarious packet delaying router behaviour we consider a baseline 6 router network from \cref{sec:Mnetworkprobing} shown in \cref{fig:M6routertop}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0\ -\ r_5$ designed as nefarious in each experiment respectively. Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations was collected from each router every timestep post queue stabilization. Plots of collected router packet delay variation (PDV) are shown in \ref{fig:MrouterPDV}.\par
-Initially all nefarious router PDV measurements were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDV were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was only between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}. From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively and an average inter-group variance of 862.99, validating our grouping. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. We continue investigation of the impacts of this symmetry in \cref{ssec:Rsympathicpdv}.\par
-Using these grouping its clear that the nefarious router's PDV differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDV $\approx$3232 times larger than that of the 2nd largest PDV. Of interest is the behaviour of $r_0$ and $r_5$ when nefarious, although these routers connect to half as many routers as the others they exhibit their nefarious behaviour can still be inferred through PDV.\par
+To test our core hypothesis that packet delay metrics are a valid indicator of nefarious packet delaying router behaviour we consider a baseline 6 router network from \cref{sec:Mnetworkprobing} shown in \cref{fig:M6routertop}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0,\dots, r_5$ designed as nefarious in each experiment respectively. Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations were collected from each router every timestep post queue stabilization. Plots of router packet delay average (PDA) and variation (PDV) are shown in \cref{fig:Rvarnefrouter}.\par
+Initially all nefarious router packet delay metrics were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDA, and consequently PDV, were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}. From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively however they have an average inter-group variance of 862.99. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. We continue investigation of the impacts of this symmetry later in \cref{ssec:Rsympathicpdv}.\par
+Using these grouping its clear that the nefarious router's PDA differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDA $\approx$3232 times larger than that of the 2nd largest PDA. Of interest is the behaviour of $r_0$ and $r_5$ when nefarious as although these routers connect to half as many routers as the others their nefarious behaviour can still be inferred through PDA.\par
 
 \begin{figure}[H]
     \centering
@@ -58,7 +58,7 @@ Using these grouping its clear that the nefarious router's PDV differs significa
     \label{fig:M6routertop}
 \end{figure}
 
-As expected when the nefarious router has a hold probability of 0 it PDV mimics that of a non-nefarious router, however when the nefarious router has a very high hold probability $\gtrapprox 0.7$ we see the PDV regress to that of the rest of the network. We anticipate this behaviour is due to the use of variance as a metric, if a router is delaying all packets traversing it then its queue length will be consistently large or the queue will be completely full, varying little. If this hypothesis is true follows that although the PDV decreases significantly over a nefarious holding probability of 0.7 the average packet delay (PDA) would continue to increase alongside holding probability. PDA measurements from the same experimental trials are given in \ref{fig:MrouterPDA} where a clear monotonic increase between PDA and holding probability can be seen conforming to our expectations. \todo{EXPLANATION PDA PLOTS/IMPORTANT TAKEAWAYS}
+As expected when the nefarious router has a hold probability of 0 it PDV mimics that of a non-nefarious router, however when the nefarious router has a very high hold probability $\gtrapprox 0.7$ we see the PDV regress to that of the rest of the network. We anticipate this behaviour is due to the use of variance as a metric, if a router is delaying all packets traversing it then its queue length will be consistently large or the queue will be completely full, varying little. If this hypothesis is true it follows that although the PDV decreases significantly over a nefarious holding probability of 0.7 the PDA would continue to increase. PDA measurements from the same experimental trials in \ref{fig:MrouterPDA} show a clear monotonic increase between PDA and holding probability, conforming to our expectations.
 
 \sisetup{retain-zero-exponent}
 \begin{table}[H]
@@ -66,7 +66,7 @@ As expected when the nefarious router has a hold probability of 0 it PDV mimics 
   \begin{tabular}{@{}cS[table-format=1.2e1]@{}}
    \toprule
     \textbf{Hold Probability} & \textbf{Nefarious router} \\
-    \textbf{Range} & \textbf{PDV variance} \\
+    \textbf{Range} & \textbf{PDA variance} \\
    \midrule
     {[}0.0, 0.1{)} & 3.03e-01  \\
     {[}0.1, 0.2{)} & 8.89e+00  \\
@@ -80,7 +80,7 @@ As expected when the nefarious router has a hold probability of 0 it PDV mimics 
     {[}0.9, 1,0{)} & 3.10e-03  \\
    \bottomrule
   \end{tabular}
-  \caption{Variance of nefarious router PDV grouped by varying delay probabilities in the baseline 6 router network.}
+  \caption{Variance of nefarious router PDA grouped by varying delay probabilities in the baseline 6 router network.}
     \label{tbl:MrouterPDAvars}
 \end{table}
 \begin{table}[H]
@@ -100,7 +100,7 @@ As expected when the nefarious router has a hold probability of 0 it PDV mimics 
         {$r_5$} & 1.00e2 & 6.37e2 & 9.34e2 & 1.06e3 & 6.67e2 & 0.0e0  \\
         \bottomrule
     \end{tabular}
-    \caption{PDV variance between each nefarious router pair $r_i$ and $r_j$}
+    \caption{PDA variance between each nefarious router pair $r_i$ and $r_j$}
     \label{tab:Rallvars}
 \end{table}
 \begin{figure}[H]
@@ -118,6 +118,7 @@ As expected when the nefarious router has a hold probability of 0 it PDV mimics 
         \label{fig:MrouterPDV}
     \end{subfigure}
     \caption{Average non-nefarious and grouped nefarious router packet metrics over a range of time-steps.}
+    \label{fig:Rvarnefrouter}
 \end{figure}
 
 To investigate if these trends of PDA and PDV hold over arbitrary network topologies 30 random graphs were generated with the ER method, subdivided into 3 groups of 10 graphs each with low ($p=0.2$), medium ($p=0.5$), and high ($p=0.85$) levels of connectivity and 30 were generated with the BA method. Plots of PDV results are shown in \cref{fig:Rrandgraphpdv} with the PDV of the nefarious router shown against the max PDV over all other routers.
@@ -130,16 +131,24 @@ To investigate if these trends of PDA and PDV hold over arbitrary network topolo
 \end{figure}
 
 \subsection{Packet Delay Inference Robustness}
-Once again considering the baseline network \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of varying these properties independently then combinatory effects on packet delay metrics, beginning firstly with router queue buffer length.\par
-Using the same procedure as baseline experiments in the previous section we consider only the case of $r_1$ begin nefarious, we measure the impact of hold probabilities on packet delay metrics over varying buffer queue lengths. Considering first the metric of PDA, plots of observed values and values with a standard min-max normalisation applied are given in \cref{fig:Rvariedqlenpda}. From these we see that irrespective of queue length the relation between hold probability and PDA is approximated by a sigmoid function, fitting a standard sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results in a mean $R^2=0.997$ with a minimum of $R^2=0.993$, accurate enough to confirm the initial prediction. The upper bound of each sigmoid is given by approximately the maximum length with the lower bound being approximately 0.\par
+Once again considering the baseline network in \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of varying these properties independently then combinatory effects on packet delay metrics, beginning firstly with router queue buffer length.\par
+Using the same procedure as baseline experiments in the previous section we consider only the case of $r_1$ begin nefarious, we measure the impact of hold probabilities on packet delay metrics over varying buffer queue lengths. Firstly considering PDA plots of original values and values with a standard min-max normalisation applied are given in \cref{fig:Rvariedqlenpda}.\par
+From these we see that irrespective of queue length the relation between hold probability and PDA appears to be a sigmoid curve. Using a standard Levenberg–Marquardt method \cite{osborne_nonlinear_1976} we fit a sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results. We selected the Levenberg–Marquardt minimisation algorithm as it performed the best over all fits, both the trust region reflective algorithm and dogleg algorithm with a rectangular trust region were tried but produced inferior $R^2$ values, results for these fits are shown in \cref{Aaltcurvefit}.\par
+The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, accurate enough to confirm the initial prediction. In the non-normalised case the upper bound of each sigmoid is given by approximately the maximum length and a lower bound being approximately 0. In normalising the data we see that an increase in queue length both shifts the inflection point of the sigmoid to the right and reduces the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real world systems, as such we do not consider these in further analysis and leave them to future work.\par
 \begin{figure}[H]
     \centering
-    \missingfigure{Plot of router PDA from varied qlen}
-    \caption{Caption}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_lm.png}
+        \caption{Original}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/norm_qlen_PDA_lm.png}
+        \caption{Min-max scaled}
+    \end{subfigure}
+    \caption{Plots of average nefarious router buffer queue length over various hold probabilities.}
     \label{fig:Rvariedqlenpda}
 \end{figure}
-Application of a min-max scalar normalisation enables clearer observation of the impact router queue length has on the inflection point and gradient of the sigmoid, from PLOT REFERENCE we can see larger router queue lengths shift the infection point of the curve to the right and reduce the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real world systems, as such we do not consider these in further analysis. To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in PLOT REFERENCE. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient.\par
-Fitting a model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length.
+To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in PLOT REFERENCE. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient. Fitting a polynomial model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length. This estimation can allow for the relation to be inverted i.e. given a router's queue length and PDA we can estimate the router's hold probability.
 \begin{figure}[H]
     \centering
     \missingfigure{Plot of sigmoid coeffs over varying queue lengths.}
