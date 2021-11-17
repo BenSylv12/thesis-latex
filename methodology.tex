@@ -1,10 +1,12 @@
 \chapter{Methodology}
 \label{cha:methodology}
-In this section we introduce our computational representation of networks along with concrete implementations and techniques used for dynamic routing algorithms and finally inference calculation...
-\todo{Needs to be fleshed out once section complete}
+In this chapter we present the reader with a breakdown of tools and techniques used in experimental analysis. We partition our approach into three categories, each focused on addressing a particular section of our overarching hypothesis. We firstly discuss the implementation of our network simulation environment and list of produced tools in \cref{sec:Msimenvironment}. In this section we additionally cover the technical implementations of the network, probe paths, and other data structure choices. Secondly we explain our approach to testing the sub-hypothesis that network tomography enables inference of node level packet delay metrics within stochastically routing networks. We detail specifics of how we have applied network tomography and evaluated its accuracy w.r.t inferring node level metrics in \cref{sec:Mnetworkprobing}.\par
+In \cref{sec:MNefidentification} we give an overview of our approach to determining router level nefarious hold probability in . In this analysis we identify a novel parametric relationship between router hold probability and packet delay. We then show how this relationship can be inverted to estimate router hold probability from packet delay. Thirdly in \cref{sec:Moptprobing} we then present the idea of the tomographic pipeline to segment the complex process of network tomography. We then cover our implementation of two optimisations to the tomographic pipeline using techniques introduced in \cref{cha:background}. Finally in \cref{sec:Mevaltechniques} we present methods we use for evaluating the significance of our findings and presenting results empirically.
 
+\section{Simulation Environment and Tools}
+\label{sec:Msimenvironment}
 
-\section{Inferring Nefarious Behaviour}
+\section{Inferring Packet Delay Metrics}
 \label{sec:Mnetworkprobing}
     To determine whether a router is behaving nefariously we must establish and verify a quantitative metric that is impacted by this nefarious behaviour. Using tomography we are able to observe end-to-end metrics, the additive metric of packet delay was an appealing option as we expect the nefarious delaying of routers to impact packet delay.
     
@@ -34,8 +36,8 @@ In this section we introduce our computational representation of networks along 
     \todo{Explain why the second order stat of variation is better for clock sync, but show accuracy issues vs first order average (reference results).}
 
     
-\section{Identifying Router Metrics}
-\label{sec:Maddtomography}
+\section{Identifying Nefarious Behaviour}
+\label{sec:MNefidentification}
 Todo:
 \begin{itemize}
     \item Tomography as a linear system with a linear solution (note can include multiple routers in probe paths for identifiability just need to divide by the number of times it appears).
@@ -151,7 +153,7 @@ Todo:
             &= \rowvect{0\;1\;0\;0\;0\;0}\\
         \end{split}
     \end{align}\par
-    As discussed in \cref{sec:Maddtomography} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Maddtomography}.\par
+    As discussed in \cref{sec:Mnetworkprobing} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnetworkprobing}.\par
     Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}+\gls{urouters}$.\par
     Given this, we ignore \gls{urouters} and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in \gls{irouters}$ following conventions in \cref{eq:r1computation} to give the set of router level metrics \gls{metrics}:
     \begin{equation*}
@@ -173,7 +175,7 @@ Todo:
 
 Need to discuss halting probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
 
-\section{Optimizing the Tomographic Pipeline}
+\section{Optimising Inferential Accuracy}
 \label{sec:Moptprobing}
 \begin{figure}[H]
     \centering
@@ -191,7 +193,7 @@ Need to discuss halting probe packet injection before the end of the measurement
     \caption{The Tomographic Pipeline.}
 \end{figure}
 
-\subsection{Monitor Placement}
+\subsection{The Tomographic Pipeline}
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Mpppselection}
@@ -245,9 +247,8 @@ Using $\widehat{\mathcal{L}}(q, p)$ we are able to represent a network as a FIM,
 
 We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [0.33, 0.33, 0.33],  $\phi_1$ = [0.1, 0.8, 0.1], and $\phi_2$ = [0.8, 0.1, 0.1]. As there are no nefarious routers each router has an equal expected true PDV, let these true PDV's be $r_0=1, r_1=1, r_2=1$, the CRB of each probe allocation is then $\phi_0$=2.69, $\phi_1$=5.97, $\phi_2$=5.97. Recalling that the CRB provides a lower bound on inferential accuracy, the equal allocation of probes between paths results in the lowest inferential accuracy, this also holds when nefarious behaviour is included. Suppose the case of $r_1$ being nefarious with a $\frac{1}{3}$ probability of holding a packet any timestep, resulting in an increased PDV of 3 the CRB of each probing scheme is then $\phi_0$=1.51, $\phi_1$=4.24, $\phi_2$=2.05. Although each probing scheme performs worse it is clear that $\phi_0$ is comparatively even worse at detecting the increased PDV of the nefarious router than the case of no nefarious nodes. Note for comparison that in the previous case of being $r_1$ nefarious a pseudo optimal probing allocation $\phi_{optimal}$ = [0.0, 0.5, 0.5] results in a CRB of 33.67.
 
-\section{Model Robustness}
-\label{sec:Mmodelrobustness}
-\todo{This subsection is to explain our method of varying the chance of a router delaying, the intensity of background traffic and topology to test the limits of our inferential accuracy.}
+\section{Evaluation Techniques}
+\label{sec:Mevaltechniques}
 
 \section{Summary}
 \todo{Once chapter is finished recap what we showed with a reference to each section.}

@@ -2,8 +2,8 @@
 \label{cha:background}
 
 In this chapter we aim to provide the reader with a concrete understanding of key concepts utilised within our new tomographic technique along with a conceptual grasp on metrics and methods used to analyse and verify it. We begin with the theory and intuition behind previously and currently employed random network generation algorithms in \cref{sec:Bgraphgeneration}, providing the reader with a deeper understanding of terms from \cref{ssec:Icurrentmodels}.\par
-To explore findings within previous work relating to the effect of monitor placements strategy on tomographic accuracy, we introduce established algorithms for placement of these observable monitors within networks from literature in \cref{ssec:Bmonitorplacement}. Next we establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints, we also separate routing into four classes according to these restraints, justifying a focus on the \cbr and \cfr mechanisms for subsequent sections.\par
-Next we give generalised explanations of key statistical concepts, concisely summarizing their realization within our work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization} with the intent of giving a more verbose grounding of these in the context of network tomography within \cref{cha:methodology}. Lastly we tie all aforementioned concepts together through their use within our novel tomographic model and explore existing implementations of \pdv tomography within the network tomographic corpus in \cref{sec:Maddtomography}.
+We establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints, we also separate routing into four classes according to these restraints, justifying a focus on the \cbr and \cfr mechanisms for subsequent sections.\par
+Next we give generalised explanations of key statistical concepts, concisely summarizing their realization within our work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization} with the intent of giving a more verbose grounding of these in the context of network tomography within \cref{cha:methodology}. Lastly we tie all aforementioned concepts together through their use within our novel tomographic model and explore existing implementations of \pdv tomography within the network tomographic corpus in \cref{sec:Mnetworkprobing}.
 
 \section{Graph Generation}
 \label{sec:Bgraphgeneration}
@@ -169,31 +169,7 @@ For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$,
 
 \section{Optimization Techniques}
 \label{sec:Boptimization}
-The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing by decomposing the measurement process into three stages: placement of monitorable nodes surrounding the network, selection of paths to probe between monitorable nodes and allocation of probes over these paths. \cref{ssec:Bmonitorplacement} present three typical approaches for choice of monitors to observe: random placement, greedy placement, and ma's algortim, additionally highlighting that only the Ma's algortim guarantees node identifiability. In \cref{ssec:Bparsppselection} we address the first of these stages, explaining the desire for a minimal number of paths and presenting Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we cover relevant core concepts in the field of optimum experimental design with the intent of using these in the context of probe allocation to paths in \cref{ssec:Mpallocation}.
-
-\subsection{Monitor Placement}
-\label{ssec:Bmonitorplacement}
-Within \gls{network} there is a set of switches \gls{switches} analogous to connections with external networks \ie the internet, as outline in \cref{cha:intro}. Within this set of switches we distinguish a set of monitors $\gls{monitors}\subseteq \gls{switches}$ which we are able to directly observe and control. In all forms of tomography observations obtained from $M$ are used to infer the state of \gls{network}, as such the selection of \gls{monitors} has a substantial impact on the inference we are able to obtain regarding \gls{network}. Previous work has explored placement strategies of \gls{monitors} given the topology of \gls{network}, we focus on the three algorithms derived from these strategies in \cite{ma_optimal_2015}: Random placement, Greedy placement, and Ma's algorithm. In each algorithm we assume a budget of $m$ monitors that can be placed around the network.\par
-Random placement is a trivial strategy where $m$ switches are selected at random for observation, hence becoming monitors. A more nuanced approach to monitor placement is the Greedy Monitor Placement Algorithm, this placement strategy places monitors as far apart as possible within the network, avoiding clumping of monitors together in order to cover as much of the network with probing as possible. After this selection, if there are any monitors remaining in the budget $m$ they are chosen at random. We provide an description of the algorithm courtesy of \cite{barnes_stochastic_2020} in \cref{alg:greedyplacement}.\par
-The final and most complex strategy is Ma's algorithm, initially established in \cite{ma_optimal_2015} aims to achieve optimal monitor placement within arbitrarily network topologies. Optimal monitor placement is defined as the placement which enables the maximum information to be gained from network probing. At it's core this is an extension of the greedy placement algorithm which accounts for two special cases of routers: those adjacent to only a single or a pair of routers. These cases are explicitly accounted for as in both a monitor must be placed on at least two of the nodes within the sub-network the routers form else no probe packets would be able to pass through, let along uniquely identify, each comprising router. After placement of monitors to cover these special cases of isolated router connectivity the greedy approach is used for the remaining placement.
-\begin{algorithm}
-    \KwData{Network topology $A$, the set of router's $R$ and the number of monitors to be placed $m$.}
-    \KwResult{Set of monitor nodes $M$}
-    
-    Calculate the set of shortest paths between all nodes using Dijkstra's algorithm\;
-    $M\gets \varnothing$\;
-    $U\gets R$\;
-    \While{$|M|<m \&\& U\neq\varnothing$}{
-        $S\gets$ shortest path which contains the largest number of routers in $U$\;
-        $M\gets$ End nodes of this path\;
-        $U\gets U-S$\;
-    }
-    \If{$|M|<m$}{
-        $M\gets$ random selection of $m-|M|$ nodes\;
-    }
-    \caption{Greedy Monitor Placement}
-    \label{alg:greedyplacement}
-\end{algorithm}
+The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing. We decompose the measurement process into two stages: selection of paths to probe between monitor nodes and allocation of probes over these paths. In \cref{ssec:Bparsppselection} we address the first of these stages. We justify the desire for a minimal number of paths and present Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we introduce concepts of optimum experimental design with the intent of using these to compute optimal probe allocation between paths in \cref{ssec:Mpallocation}.
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Bparsppselection}
