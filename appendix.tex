@@ -100,6 +100,9 @@
         \end{subfigure}
     \end{figure}
 
+\newpage
+
+\newpage
 \section{Queue Stabilization}
 \label{sec:Aqueuestabilization}
 
@@ -142,5 +145,57 @@
     \caption{Variance pre and post queue length stabilization point}
 \end{table}
 
+\newpage
+
+\newpage
+\section{Sympathetic Packet Delay Metric Increase}
+\label{sec:Asympathicpdv}
+Note symmetric increase due to topology symmetry.
+
+\newpage
 \section{Curve Fitting with Alternative Minimisation Algorithms}
 \label{Aaltcurvefit}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_trf.png}
+        \caption{Original}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/norm_qlen_PDA_trf.png}
+        \caption{Min-max scaled}
+    \end{subfigure}
+    \caption{Plots of average nefarious router buffer queue length over various hold probabilities fitted using TRF minimisation.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_dogbox.png}
+        \caption{Original}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/norm_qlen_PDA_dogbox.png}
+        \caption{Min-max scaled}
+    \end{subfigure}
+    \caption{Plots of average nefarious router buffer queue length over various hold probabilities fitted using dogbox minimisation.}
+\end{figure}
+
+\begin{table}[H]
+ \centering
+  \begin{tabular}{@{}cccccc@{}}
+   \toprule
+    &&\multicolumn{2}{c}{\textbf{PDA}} & \multicolumn{2}{c}{\textbf{PDV}} \\
+    \cmidrule(rl){3-4} \cmidrule(rl){5-6}
+    Algorithm & $R^2$ & Original & Scaled & Original & Scaled \\
+    \midrule
+    \multirow{2}{*}{LM}     & $\overline{x}$ & 99.778        & 99.778 & 99.187 & 99.187 \\
+                            & min            & 99.403        & 99.403 & 98.323 & 98.323 \\
+    \multirow{2}{*}{TRF}    & $\overline{x}$ & 83.211        & 99.778 & -      & 99.187 \\
+                            & min            & 5.679         & 99.403 & -      & 98.323 \\
+    \multirow{2}{*}{Dogbox} & $\overline{x}$ & 66.595        & 99.778 & -      & 99.187 \\
+                            & min            & 6.399$e^{-9}$ & 99.403 & -      & 98.323 \\
+   \bottomrule
+  \end{tabular}
+  \caption{Variance of nefarious router PDA grouped by varying delay probabilities in the baseline 6 router network. (Note all values are $R^2\cdot 100$)}
+\end{table}

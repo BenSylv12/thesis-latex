@@ -1,6 +1,6 @@
 \chapter{Results and Discussion}
 \label{cha:result}
-In this section we present a simplified synthetic computer network developed in Python, validation of the models correctness with respect to assumptions regarding queue length stabilization can be found in appendix B. Once validated we apply baseline techniques introduced in \cref{cha:methodology} to test our new methods for nefarious router identification. We compared these results to previous analytical techniques, highlighting trade-offs in accuracy for generally applicability, deploy-ability and run time within \cref{sec:Rnefarouterdetection}. During this analysis several interesting behaviours were encountered in edge cases, these findings are shown and further experiments conducted on hypothesised explanations for the behaviour within \cref{ssec:Rsympathicpdv} and \cref{ssec:Rmetricnormalisation}. Of particular noteworthiness is that the investigation into unexpectedly poor inferential results from router level \pdv  behaviour in \cref{ssec:Rmetricnormalisation} revealed a flaw within previous work's inferential calculation, necessitating changes to the experimental methodology. We then move to testing the impacts of optimal probe allocation techniques on our inferential accuracy in \cref{sec:Rprobingoptimality}, ...\par
+In this section we present a simplified synthetic computer network developed in Python, validation of the models correctness with respect to assumptions regarding queue length stabilization can be found in appendix B. Once validated we apply baseline techniques introduced in \cref{cha:methodology} to test our new methods for nefarious router identification. We compared these results to previous analytical techniques, highlighting trade-offs in accuracy for generally applicability, deploy-ability and run time within \cref{sec:Rnefarouterdetection}. During this analysis several interesting behaviours were encountered in edge cases, these findings are shown and further experiments conducted on hypothesised explanations for the behaviour within \cref{sec:Asympathicpdv} and \cref{ssec:Rmetricnormalisation}. Of particular noteworthiness is that the investigation into unexpectedly poor inferential results from router level \pdv  behaviour in \cref{ssec:Rmetricnormalisation} revealed a flaw within previous work's inferential calculation, necessitating changes to the experimental methodology. We then move to testing the impacts of optimal probe allocation techniques on our inferential accuracy in \cref{sec:Rprobingoptimality}, ...\par
 \todo{Very brief outline of accuracy changes based on A/D optimality, (it went up/down by x)}
 Finally we construct a simulated network using real world topological and traffic data-sets within the NS3 framework to test our new method's performance in real world networks, formulating a quantitative response to our project's overarching goal.
 
@@ -9,7 +9,7 @@ Finally we construct a simulated network using real world topological and traffi
 
 \subsection{Packet Delay Inference Validity}
 To test our core hypothesis that packet delay metrics are a valid indicator of nefarious packet delaying router behaviour we consider a baseline 6 router network from \cref{sec:Mnetworkprobing} shown in \cref{fig:M6routertop}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0,\dots, r_5$ designed as nefarious in each experiment respectively. Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations were collected from each router every timestep post queue stabilization. Plots of router packet delay average (PDA) and variation (PDV) are shown in \cref{fig:Rvarnefrouter}.\par
-Initially all nefarious router packet delay metrics were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDA, and consequently PDV, were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}. From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively however they have an average inter-group variance of 862.99. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. We continue investigation of the impacts of this symmetry later in \cref{ssec:Rsympathicpdv}.\par
+Initially all nefarious router packet delay metrics were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDA, and consequently PDV, were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}. From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively however they have an average inter-group variance of 862.99. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. We investigate of the cause and impacts of this symmetry in \cref{sec:Asympathicpdv}.\par
 Using these grouping its clear that the nefarious router's PDA differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDA $\approx$3232 times larger than that of the 2nd largest PDA. Of interest is the behaviour of $r_0$ and $r_5$ when nefarious as although these routers connect to half as many routers as the others their nefarious behaviour can still be inferred through PDA.\par
 
 \begin{figure}[H]
@@ -131,7 +131,9 @@ To investigate if these trends of PDA and PDV hold over arbitrary network topolo
 \end{figure}
 
 \subsection{Packet Delay Inference Robustness}
-Once again considering the baseline network in \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of varying these properties independently then combinatory effects on packet delay metrics, beginning firstly with router queue buffer length.\par
+Once again considering the baseline network in \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
+
+\subsubsection*{Router Queue Buffer Length}
 Using the same procedure as baseline experiments in the previous section we consider only the case of $r_1$ begin nefarious, we measure the impact of hold probabilities on packet delay metrics over varying buffer queue lengths. Firstly considering PDA plots of original values and values with a standard min-max normalisation applied are given in \cref{fig:Rvariedqlenpda}.\par
 From these we see that irrespective of queue length the relation between hold probability and PDA appears to be a sigmoid curve. Using a standard Levenberg–Marquardt method \cite{osborne_nonlinear_1976} we fit a sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results. We selected the Levenberg–Marquardt minimisation algorithm as it performed the best over all fits, both the trust region reflective algorithm and dogleg algorithm with a rectangular trust region were tried but produced inferior $R^2$ values, results for these fits are shown in \cref{Aaltcurvefit}.\par
 The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, accurate enough to confirm the initial prediction. In the non-normalised case the upper bound of each sigmoid is given by approximately the maximum length and a lower bound being approximately 0. In normalising the data we see that an increase in queue length both shifts the inflection point of the sigmoid to the right and reduces the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real world systems, as such we do not consider these in further analysis and leave them to future work.\par
@@ -159,19 +161,11 @@ To quantify the relationship between queue length and the produced sigmoid we ca
         \includegraphics[width=\textwidth]{figs/results/qlen_param_d.png}
         \caption{X-value of infection point}
     \end{subfigure}
-    \caption{Plots of parameters of modeled sigmoid for hold probability against router buffer queue length.}
+    \caption{Plots of parameters for modeled sigmoid relationship between hold probability and router buffer queue length.}
     \label{fig:Rsigmoidcoefs}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \missingfigure{Plot of router PDV from varied qlen}
-    \caption{Caption}
-    \label{fig:Rvariedqlenpdv}
-\end{figure}
-
-\subsection{Sympathetic PDV Increase}
-\label{ssec:Rsympathicpdv}
+\subsubsection*{Background Traffic Intensity}
 
 \section{Tomographic Inference}
 \begin{figure}[H]
