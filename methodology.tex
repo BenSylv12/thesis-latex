@@ -1,179 +1,225 @@
 \chapter{Methodology}
 \label{cha:methodology}
-In this chapter we present the reader with a breakdown of tools and techniques used in experimental analysis. We partition our approach into three categories, each focused on addressing a particular section of our overarching hypothesis. We firstly discuss the implementation of our network simulation environment and list of produced tools in \cref{sec:Msimenvironment}. In this section we additionally cover the technical implementations of the network, probe paths, and other data structure choices. Secondly we explain our approach to testing the sub-hypothesis that network tomography enables inference of node level packet delay metrics within stochastically routing networks. We detail specifics of how we have applied network tomography and evaluated its accuracy w.r.t inferring node level metrics in \cref{sec:Mnetworkprobing}.\par
-In \cref{sec:MNefidentification} we give an overview of our approach to determining router level nefarious hold probability in . In this analysis we identify a novel parametric relationship between router hold probability and packet delay. We then show how this relationship can be inverted to estimate router hold probability from packet delay. Thirdly in \cref{sec:Moptprobing} we then present the idea of the tomographic pipeline to segment the complex process of network tomography. We then cover our implementation of two optimisations to the tomographic pipeline using techniques introduced in \cref{cha:background}. Finally in \cref{sec:Mevaltechniques} we present methods we use for evaluating the significance of our findings and presenting results empirically.
+In this chapter we present a breakdown of tools and techniques used in experimental analysis. We partition our approach into three categories, each focused on addressing a particular section of our overarching hypothesis. We firstly discuss the implementation of our network simulation environment and list of produced tools in \cref{sec:Msimenvironment}. In this section we additionally cover the technical implementations of the network, probe paths, and other data structure choices. Secondly we explain our approach to testing the sub-hypothesis that network tomography enables inference of node level packet delay metrics within stochastically routing networks. We detail specifics of how we have applied network tomography and evaluated its accuracy w.r.t inferring node level metrics in \cref{sec:Mnetworkprobing}.\par
+In \cref{sec:MNefidentification} we give an overview of our approach to determining router level nefarious hold probability in . In this analysis we identify a novel parametric relationship between router hold probability and packet delay. We then show how this relationship can be inverted to estimate router hold probability from packet delay. Coupled with this we present a secondary approach which requires ground truth metrics of the network known to have no nefarious routers.\par
+Thirdly in \cref{sec:Moptprobing} we present the idea of the tomographic pipeline to segment the complex process of network tomography. We then cover our implementation of two optimisations to the tomographic pipeline using techniques introduced in \cref{cha:background}. Finally in \cref{sec:Mevaltechniques} we present methods we use for evaluating the significance of our findings and presenting results empirically.
 
 \section{Simulation Environment and Tools}
 \label{sec:Msimenvironment}
+In this section we present the python modules developed for the testing of our overarching hypothesis. We explain implmentation details and justifications behind choices we have made during the development process.
+
+\cite{virtanen_scipy_2020}
+
 
 \section{Inferring Packet Delay Metrics}
 \label{sec:Mnetworkprobing}
-    To determine whether a router is behaving nefariously we must establish and verify a quantitative metric that is impacted by this nefarious behaviour. Using tomography we are able to observe end-to-end metrics, the additive metric of packet delay was an appealing option as we expect the nefarious delaying of routers to impact packet delay.
+\begin{mdframed}
+\textbf{NOTATION FOR PDV SECTION FORMALIZATION}:\\
+Probe path probabilities: Each probe packet is sent along a probe path $p$ with a probability of $\phi_p$, given there are multiple paths within any non-trivial model we represent them all as $\vec{\phi}=\forall p\in P^*, \phi_p$ where $|\vec{\phi}|=|P^*|$, $\phi_p \geq 0$ and $\sum_{p\in P^*}\phi_p = 1$
+
+The parameter vector $\vec{\theta}$ is the vector of length $|R|$ containing the parameter governing each $q\in Q$ where $ q_x \sim \theta_x$ or more formally $\vec{\theta}=\forall r\in R, \theta_r$.
+
+The vector $\vec{\psi}$ is the vector containing all proper path allocations/injection probabilities where $\psi_x$ is the allocation of probes to $p_x\in P^*$ 
+
+Let $f_{Q|\vec{\theta}}(q)$ represent the probability of observing the value $q$ from monitor-to-monitor probe path $p\in P^*$ given the node parameter $\theta_x$ governing $Q_x$.
+
+Note that we can represent a tomographic problem as a system of $P^*f'(\theta)=\mathcal{M}$ where $f'$ is a one-to-one correspondence function of $\theta$ and $\mathcal{M}$ is a matrix of monitor-to-monitor metrics we collect from our probing where $\mathcal{M}_p = (q_1,q_2,\ldots, q_n)$. For ease of notation let $|\mathcal{M}_p|$ be the number of metrics ($n$) we collect over path $p$. Note that for aggregation of measurements after collection $\forall p\in P^*, \forall r\in p, \mathcal{M}=\sum_{r\in p}\theta_r$.
+\end{mdframed}
+\todo{Integrate this into this section}
+
+To best utilise previous work on tomography we generalise our network as an $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where $|\gls{routers}|$ is the number of routers. The $i$th$\times j$th entry of the matrix is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. Using this notation we are able to express the example network shown in \cref{fig:6routersample} as the adjacency matrix $A$:
+
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{6routertopology}
+    \begin{tikzpicture}[
+        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
+        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
+        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
+        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
+        
+        % Routers
+        \node[router] (r0) at (-4.5,0)    {$r_0$};
+        \node[router] (r1) at (-1.5,1.5)  {$r_1$};
+        \node[router] (r2) at (-1.5,-1.5) {$r_2$};
+        \node[router] (r3) at (1.5,1.5)   {$r_3$};
+        \node[router] (r4) at (1.5,-1.5)  {$r_4$};
+        \node[router] (r5) at (4.5,0)     {$r_5$};
+        
+        %Switches
+        \node[monitor](s00) at (-6,.75)   {$s_{0,0}$};
+        \node[switch] (s01) at (-6,-.75)  {$s_{0,1}$};
+        \node[switch] (s10) at (-1.5,3)   {$s_{1,0}$};
+        \node[switch] (s20) at (-1.5,-3)  {$s_{2,0}$};
+        \node[switch] (s30) at (1.5,3)   {$s_{3,0}$};
+        \node[switch] (s40) at (1.5,-3)   {$s_{4,0}$};
+        \node[switch] (s50) at (6,.75)   {$s_{5,0}$};
+        \node[monitor](s51) at (6,-.75)   {$s_{5,1}$};
+        %Links
+        \draw[-] (r0.east) -- (r1);
+        \draw[-] (r0.east) -- (r2);
+        \draw[-] (r1) -- (r2);
+        \draw[-] (r1) -- (r3);
+        \draw[-] (r1.south east) -- (r4.north west);
+        \draw[-] (r2) -- (r3);
+        \draw[-] (r2) -- (r4);
+        \draw[-] (r3) -- (r4);
+        \draw[-] (r3) -- (r5.west);
+        \draw[-] (r4) -- (r5.west);
+        \draw[-] (s00.east) -- (r0.west);
+        \draw[-] (s01.east) -- (r0.west);
+        \draw[-] (s10) -- (r1);
+        \draw[-] (s20) -- (r2);
+        \draw[-] (s30) -- (r3);
+        \draw[-] (s40) -- (r4);
+        \draw[-] (s50.west) -- (r5.east);
+        \draw[-] (s51.west) -- (r5.east);
+    \end{tikzpicture}
+    \caption{6 router network with 2 monitors located at $r_0$ and $r_5$}
+    \label{fig:6routersample}
+\end{figure}\par
+
+\begin{equation}\label{eq:6routeradjmatrix}
+    A = \begin{bmatrix} 
+        0 & 1 & 1 & 0 & 0 & 0 \\
+        1 & 0 & 1 & 1 & 1 & 0 \\
+        1 & 1 & 0 & 0 & 0 & 0 \\
+        0 & 1 & 1 & 0 & 1 & 1 \\
+        0 & 1 & 1 & 1 & 0 & 1 \\
+        0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
+\end{equation}
+
+We use this method of network representation as it interfaces best with existing network tomography techniques and is spatially efficient implementation. On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
+As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. The set of probe paths used $\gls{p*}$ is represented using a $|\gls{p*}|\times |\gls{routers}|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $\gls{p*}$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
+\[
+    P'=\begin{bmatrix}
+        1 & 1 & 0 & 0 & 1 & 1\\ 
+    \end{bmatrix}
+\]
+Such a choice a $P$ would be useless however as it does not allow any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with full column rank, such as:
+\begin{equation}
+\label{eq:6routerppaths}
+    P^*=\begin{bmatrix}
+            p_0 \\
+            p_1 \\
+            p_2 \\
+            p_3 \\
+            p_4 \\
+    \end{bmatrix} = 
+    \begin{bmatrix}
+            1 & 1 & 0 & 0 & 1 & 1 \\
+            1 & 1 & 0 & 1 & 0 & 1 \\
+            1 & 1 & 0 & 1 & 1 & 1 \\
+            1 & 0 & 1 & 0 & 1 & 1 \\
+            1 & 1 & 1 & 0 & 1 & 1 \\
+    \end{bmatrix}
+\end{equation}
+Using $P^*$ from \cref{eq:6routerppaths} we are able to compute a vector containing only $r_1$ through subtraction of row-vectors:
+\begin{align}
+\label{eq:r1computation}
+    \begin{split}
+        r_1 &= p_4-p_3\\
+        &= \rowvect{1\;1\;1\;0\;1\;1} - \rowvect{1\;0\;1\;0\;1\;1}\\
+        &= \rowvect{0\;1\;0\;0\;0\;0}\\
+    \end{split}
+\end{align}\par
+As discussed in \cref{sec:Mnetworkprobing} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnetworkprobing}.\par
+Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}+\gls{urouters}$.\par
+Given this, we ignore \gls{urouters} and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in \gls{irouters}$ following conventions in \cref{eq:r1computation} to give the set of router level metrics \gls{metrics}:
+\begin{equation*}
+    M = 
+    \begin{cases}
+    r_1, & p_4-p_3\\
+    r_2, & p_4-p_0\\
+    r_3, & p_2-p_0\\
+    r_4, & p_2-p_1\\
+    \end{cases}
+\end{equation*}
+From this we define router identifiability as:
+\begin{equation}
+\label{eq:identifiability}
+    \forall r \in R_I,\;r \in M 
+\end{equation}
+\todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
+
+
+Need to discuss halting probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
     
-    Story Plan:
+\section{Identifying Nefarious Behaviour}
+\label{sec:MNefidentification}
+  In our problem setting nefarious behaviour is characterized by a router probabilistically \textit{delaying} packets by not forwarding them during a timestep. As noted in previous chapters we refer to a router's probability of delaying a packet during a timestep as its \textit{hold probability}. To classify a router as behaving nefariously we require a metric that is impacted by this nefarious behaviour and identifiable using network tomography. We postulate that packet delay, serving as a proxy for router buffer queue length, is an appropriate metric. We therefore hypothesise that a router can be classified as exhibiting nefarious behaviour using information gained from packet delay metrics.\par
+  This section is broken into three sub-sections, the first two address how we classify nefariously behaving routers and the third how we compare these classifications. \cref{ssec:MTruevalues} covers approaches to classification using the true buffer queue length measurements from routers at simulation time. This is to test our underlying assumption that a routers buffer queue length is influenced by its hold probability. In \cref{ssec:MInferredvalues} we instead use packet delay averages from network tomography to classify routers as nefarious. We then compare the classification accuracy and precision between these sections using graphical and numerical methods in \cref{ssec:Mclassificationcomparision}.
+  
+  \subsection{Classification with True Values}
+  \label{ssec:MTruevalues}
+  In testing our sub-hypothesis we firstly use ground true values of router queue buffer lengths from the simulation. These ground truth values emulate theoretical perfectly accurate results from network tomography. Three approaches to identifying nefarious routers with different additional assumptions are considered. Each additional assumption increases the amount of information available for router classification. The additional assumptions for each approach are:
+  \begin{enumerate}
+      \item Known router packet delay metrics with no nefarious routers (\textit{baseline metrics}) and complete distribution of router buffer queue length at each timestep.
+      \item Only known router packet delay metrics with no nefarious routers (\textit{baseline metrics}).
+      \item No additional assumptions.
+  \end{enumerate}
+  The first set was chosen as it emulates a situation where network tomography yields perfectly accurate results. This serves as a test of whether we are able to accurately classify nefarious routers given full router level information. The second and third sets emulate scenarios where results from network tomographic analysis presented in \cref{sec:Mnetworkprobing} are used for calculation. The second set additionally emulates an system under constant network monitoring. In this scenario metrics with no nefarious routers can be viewed as logged system metrics. The third set represents a scenario where these previous logs are not available or a new system is being analysed.\par
+  To evaluate our classification for each case 1-3 we consider eight national ISP topologies provided by \cite{orlowski_sndlib_2007}, \cite{knight_internet_2011} and shown in \cref{tbl:Mrealnetworkattributes}. For each topology 500 subsets of its routers are selected iid without replacement. Each of the 500 resulting sets contains a random number of routers which will be designated as nefarious at simulation run time. Three 10,000 timestep simulations are then run for each set of nefarious routers with all other network attributes randomly selected and fixed over the three simulations. As the network is stochastic all metrics are taken as an average of these three simulations to minimize variance.\par
+  For cases 1 and 2 we run three additional simulations of each topology with no nefarious routers to serve as baseline metrics. We compute the mean of all metrics from these simulations and use them for our known packet delay metrics with no nefarious routers. With these baseline metrics and results from 500 blind trials with nefarious routers we consider the problem of classification in the case of assumption set 1.\par
+  \begin{table}
+    \centering
+    \begin{tabular}{@{}cccccccc@{}}
+      \toprule
+      &&&&&\multicolumn{3}{c}{Router Degree}\\
+      \cmidrule{6-8}
+      Name & Region & Year & \# Routers & \# Links & Min & Max & Mean \\
+      \midrule
+      Nobel & Germany & 2005 & 17 & 26 & 2 & 6 & 3.05\\
+      ACOnet & Austria & 2009 & 23 & 31 & 1 & 8 & 2.7\\
+      Free & France & 2005 & 25 & 45 & 2 & 10 & 3.6\\
+      CPLEX & Norway & 2005 & 27 & 51 & 2 & 6 & 3.78\\
+      Cost266 & Europe & 2005 & 37 & 57 & 2 & 5 & 3.08\\
+      Pioro & Poland & 2005 & 40 & 89 & 4 & 5 & 4.45\\
+      China Telecomt & China & 2010 & 42 & 66 & 1 & 20 & 3.14\\
+      T-Systems & Germany & 2005 & 50 & 88 & 2 & 5 & 3.52\\
+      Telekom & Austria & 2005 & 65 & 108 & 1 & 10 & 3.32\\
+      \bottomrule
+    \end{tabular}
+    \caption{Real world network ISP topology attributes.}
+    \label{tbl:Mrealnetworkattributes}
+  \end{table}
+  In case 1 we have two distributions of buffer queue lengths for each router with only one known to have been collected from a non-nefarious router. To classify if a router is nefarious using these we assume that a nefariously delaying router will have buffer queue lengths greater than an equivalent non-nefariously delaying router.\par
+  To compare these distributions we use SciPy's implementation of a one-tailed two-sample Kolmogorov-Smirnov test (\cite{chakravarti_handbook_1967}) in python. To ensure the classification is accurate we select a p-value of 0.0 as required to classify a router as nefarious. This means we tolerate virtually no chance of the result occurring by chance. We select this extremely low tolerance as our assumptions in this test provide the most information possible. To give a more comprehensive overview of the classifier we produce a receiver operating characteristic curve, varying the p-val required to be classified as nefarious.\par
+  In case 2 we do not have access to the complete queue buffer length distributions. Instead we use utilise summary statistics obtainable from tomography, specifically PDA and PDV. Without the underlying distribution we are unable to use the Kolmogorov-Smirnov test as in case 1. It follows from our assumption in case 1 that their will be a statistically significant difference in PDA between a nefarious and non-nefarious router.\par
+  To account for differences due to noise from stochastic routing we use a standard deviation test for outliers. This test is shown in \cref{eq:stddev} where: $\mu$ and $\sigma$ are the mean and variance of the absolute differences between the baseline and potentially nefarious simulation for all routers, X is the given routers difference from baseline results, and Z is the threshold for being classified nefarious. As in case 1 we vary this threshold for classification as nefarious and present the results using a receiver operating characteristic curve.\par
+  
+  \begin{equation}
+  \label{eq:stddev}
+      \frac{\mu-X}{\sigma}>z
+  \end{equation}
+  
+  In the most restrictive scenario of case 3 we have access to neither the underlying router buffer queue distribution nor a baseline of non-nefarious metrics. To classify a router as nefarious we are required to determine its hold probability from packet delay metrics alone, a non-trivial task which we address in depth in \cref{ssec:pdatoholdprob}.\par
+  
+  \subsection{Estimating Hold Probability from Packet Delay Metrics}
+  \label{ssec:pdatoholdprob}
+  To establish a relationship between router packet delay metrics and hold probability we  consider 100 randomly generated topologies, 50 using BA and 50 using ER. Randomly generated topologies are used in-place of the limited number real world topologies to ensure results are robust. We assume that there is an underlying parameterised relationship between a routers hold probability and buffer queue length. With the relationship being parameterised over the two variable network parameters: max buffer queue length and background traffic intensity.\par
+  To determine this relationship we simulate each topology with a combinations of max queue length from  200-5,000 and background traffic intensity from 0.1-0.5, each for 10,000 time steps. For each combination of parameters the hold probability of a randomly selected nefarious router is varied from 0.1-0.9. The PDA of the router is recorded along with the corresponding hold probability. Results are then graphed using a scatter plot to visually approximate and display the relationship between these router attributes.\par
+  To map an arbitrary hold value to a measured PDA or vice-versa we fit a function to these discrete observed data points. This curve fitting is done using the curve\_fit function of SciPy's optimize class provided with an initial guess for the minimum and maximum values of the function as 0 and the maximum queue length respectively. We use Levenberg–Marquardt minimisation for the fitting as it was found to be the best performing from those available. For transparency we present results when curve fitting using Trust Region Reflective and Rectangular Trust Region Dogleg minimisation algorithms in Appendix D.\par
+
+  \subsection{Classification with Inferred Values}
+  \label{ssec:MInferredvalues}
+  
+  Using Ma's monitor placement algorithm a minimum sufficient subset of routers are designated as having monitors. Probe paths between these monitors are then calculated using the spanning tree based construction method.
+
+    To consider:
     \begin{itemize}
-        \item Ability of packet delay metrics to detect nefarious behaviour in 'baseline' network
-        \item Changing nefarious router within baseline
-        \item Does Inference hold over variable network attributes?
+        \item Testing if Inference hold over variable network attributes:
         \begin{itemize}
             \item Router queue length
             \item Network background traffic
             \item Network topology
         \end{itemize}
-        \item Testing variable queue length and background traffic in the baseline network
-        \item Sigmoid curve from PDA being a likely candidate (as we want to infer when a router is very nefarious) warrants further investigation Need to mention Dogbox, TRF, and Levenberg–Marquardt.
-        \item Determining relationship between PDA-holdprob curve and network attributes of queue length and background traffic.
-        \begin{itemize}
-            \item Curve fitting relationship using popular minimization algorithms avaliable in scipy: dogbox, trf and lm.
-            \item Selected the best curve fitting minimization for use.
-        \end{itemize}
-        \item Generated network topologies - 50 ER and 50 BA with varying \# of routers from 30-100
-        \item Varying queue length and background traffic in each of these generated configurations, measuring PDA.
-        \item Real world topologies with varying \# of routers - testing impact of queue length and background traffic.
-        \item Validate weather the sigmoid and network attributes hold over arbitrary generated and real world topologies.
+        \item Done robustly using generated network topologies - 50 ER and 50 BA with varying \# of routers from 30-100, varying queue length and background traffic in each, measuring PDA
     \end{itemize}
-    
-    \todo{Explain why the second order stat of variation is better for clock sync, but show accuracy issues vs first order average (reference results).}
 
-    
-\section{Identifying Nefarious Behaviour}
-\label{sec:MNefidentification}
-Todo:
-\begin{itemize}
-    \item Tomography as a linear system with a linear solution (note can include multiple routers in probe paths for identifiability just need to divide by the number of times it appears).
-\end{itemize}
-
-    \begin{mdframed}
-    \textbf{NOTATION FOR PDV SECTION FORMALIZATION}:\\
-    Probe path probabilities: Each probe packet is sent along a probe path $p$ with a probability of $\phi_p$, given there are multiple paths within any non-trivial model we represent them all as $\vec{\phi}=\forall p\in P^*, \phi_p$ where $|\vec{\phi}|=|P^*|$, $\phi_p \geq 0$ and $\sum_{p\in P^*}\phi_p = 1$
-    
-    The parameter vector $\vec{\theta}$ is the vector of length $|R|$ containing the parameter governing each $q\in Q$ where $ q_x \sim \theta_x$ or more formally $\vec{\theta}=\forall r\in R, \theta_r$.
-    
-    The vector $\vec{\psi}$ is the vector containing all proper path allocations/injection probabilities where $\psi_x$ is the allocation of probes to $p_x\in P^*$ 
-    
-    Let $f_{Q|\vec{\theta}}(q)$ represent the probability of observing the value $q$ from monitor-to-monitor probe path $p\in P^*$ given the node parameter $\theta_x$ governing $Q_x$.
-    
-    Note that we can represent a tomographic problem as a system of $P^*f'(\theta)=\mathcal{M}$ where $f'$ is a one-to-one correspondence function of $\theta$ and $\mathcal{M}$ is a matrix of monitor-to-monitor metrics we collect from our probing where $\mathcal{M}_p = (q_1,q_2,\ldots, q_n)$. For ease of notation let $|\mathcal{M}_p|$ be the number of metrics ($n$) we collect over path $p$. Note that for aggregation of measurements after collection $\forall p\in P^*, \forall r\in p, \mathcal{M}=\sum_{r\in p}\theta_r$.
-    \end{mdframed}
-    \todo{Integrate this into this section}
-
-    To best utilise previous work on tomography we generalise our network as an $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where the $i$th$\times j$th entry is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. From this notation we are able to express the network shown in \cref{fig:6routersample} where $M=\{s_{0,0},s_{5,0}\}$ as the adjacency matrix $A$:
-    
-    \begin{figure}[H]
-        \centering
-        \tikzsetnextfilename{6routertopology}
-        \begin{tikzpicture}[
-            router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
-            nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
-            switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
-            monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
-            
-            % Routers
-            \node[router] (r0) at (-4.5,0)    {$r_0$};
-            \node[router] (r1) at (-1.5,1.5)  {$r_1$};
-            \node[router] (r2) at (-1.5,-1.5) {$r_2$};
-            \node[router] (r3) at (1.5,1.5)   {$r_3$};
-            \node[router] (r4) at (1.5,-1.5)  {$r_4$};
-            \node[router] (r5) at (4.5,0)     {$r_5$};
-            
-            %Switches
-            \node[monitor](s00) at (-6,.75)   {$s_{0,0}$};
-            \node[switch] (s01) at (-6,-.75)  {$s_{0,1}$};
-            \node[switch] (s10) at (-1.5,3)   {$s_{1,0}$};
-            \node[switch] (s20) at (-1.5,-3)  {$s_{2,0}$};
-            \node[switch] (s30) at (1.5,3)   {$s_{3,0}$};
-            \node[switch] (s40) at (1.5,-3)   {$s_{4,0}$};
-            \node[switch] (s50) at (6,.75)   {$s_{5,0}$};
-            \node[monitor](s51) at (6,-.75)   {$s_{5,1}$};
-            %Links
-            \draw[-] (r0.east) -- (r1);
-            \draw[-] (r0.east) -- (r2);
-            \draw[-] (r1) -- (r2);
-            \draw[-] (r1) -- (r3);
-            \draw[-] (r1.south east) -- (r4.north west);
-            \draw[-] (r2) -- (r3);
-            \draw[-] (r2) -- (r4);
-            \draw[-] (r3) -- (r4);
-            \draw[-] (r3) -- (r5.west);
-            \draw[-] (r4) -- (r5.west);
-            \draw[-] (s00.east) -- (r0.west);
-            \draw[-] (s01.east) -- (r0.west);
-            \draw[-] (s10) -- (r1);
-            \draw[-] (s20) -- (r2);
-            \draw[-] (s30) -- (r3);
-            \draw[-] (s40) -- (r4);
-            \draw[-] (s50.west) -- (r5.east);
-            \draw[-] (s51.west) -- (r5.east);
-        \end{tikzpicture}
-        \caption{6 router network with 2 monitors located at $r_0$ and $r_5$}
-        \label{fig:6routersample}
-    \end{figure}\par
-    
-    \begin{equation}\label{eq:6routeradjmatrix}
-        A = \begin{bmatrix} 
-            0 & 1 & 1 & 0 & 0 & 0 \\
-            1 & 0 & 1 & 1 & 1 & 0 \\
-            1 & 1 & 0 & 0 & 0 & 0 \\
-            0 & 1 & 1 & 0 & 1 & 1 \\
-            0 & 1 & 1 & 1 & 0 & 1 \\
-            0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
-    \end{equation}
-    
-    This method of network representation has several advantages for both practical implementation and analysis with tomographic techniques. On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
-    As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. The set of probe paths used $\gls{p*}$ is represented using a $|\gls{p*}|\times |\gls{routers}|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $\gls{p*}$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
-    \[
-        P'=\begin{bmatrix}
-            1 & 1 & 0 & 0 & 1 & 1\\ 
-        \end{bmatrix}
-    \]
-    Such a choice a $P$ would be useless however as it does not allow any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with full column rank, such as:
-    \begin{equation}
-    \label{eq:6routerppaths}
-        P^*=\begin{bmatrix}
-                p_0 \\
-                p_1 \\
-                p_2 \\
-                p_3 \\
-                p_4 \\
-        \end{bmatrix} = 
-        \begin{bmatrix}
-                1 & 1 & 0 & 0 & 1 & 1 \\
-                1 & 1 & 0 & 1 & 0 & 1 \\
-                1 & 1 & 0 & 1 & 1 & 1 \\
-                1 & 0 & 1 & 0 & 1 & 1 \\
-                1 & 1 & 1 & 0 & 1 & 1 \\
-        \end{bmatrix}
-    \end{equation}
-    Using $P^*$ from \cref{eq:6routerppaths} we are able to compute a vector containing only $r_1$ through subtraction of row-vectors:
-    \begin{align}
-    \label{eq:r1computation}
-        \begin{split}
-            r_1 &= p_4-p_3\\
-            &= \rowvect{1\;1\;1\;0\;1\;1} - \rowvect{1\;0\;1\;0\;1\;1}\\
-            &= \rowvect{0\;1\;0\;0\;0\;0}\\
-        \end{split}
-    \end{align}\par
-    As discussed in \cref{sec:Mnetworkprobing} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnetworkprobing}.\par
-    Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}+\gls{urouters}$.\par
-    Given this, we ignore \gls{urouters} and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in \gls{irouters}$ following conventions in \cref{eq:r1computation} to give the set of router level metrics \gls{metrics}:
-    \begin{equation*}
-        M = 
-        \begin{cases}
-        r_1, & p_4-p_3\\
-        r_2, & p_4-p_0\\
-        r_3, & p_2-p_0\\
-        r_4, & p_2-p_1\\
-        \end{cases}
-    \end{equation*}
-    From this we define router identifiability as:
-    \begin{equation}
-    \label{eq:identifiability}
-        \forall r \in R_I,\;r \in M 
-    \end{equation}
-    \todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
-
-
-Need to discuss halting probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)
+  \subsection{Nefarious Classification Comparison}
+  \label{ssec:Mclassificationcomparision}
+  
 
 \section{Optimising Inferential Accuracy}
 \label{sec:Moptprobing}

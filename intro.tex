@@ -1,8 +1,6 @@
 \chapter{Introduction}
 \label{cha:intro}
 
-
-\newpage
 \section{Outline and Motivation}
 \label{sec:Imotivationandoutline}
 
@@ -34,11 +32,12 @@ We focus on the relaxation of assumptions 1-5 and leave future work to address a
 In relaxing these assumptions and implementing extensions we hypothesise that network tomography can be used to estimate routers' buffer queue lengths with sufficient accuracy to enable inference of packet delaying behaviour by individual routers within real world networks. Due to the large scope of this hypothesis we decompose it into 2 sub-hypothesis:
 \begin{enumerate}
     \item Network tomography enables inference of node level packet delay metrics within stochastically routing real-world networks.
-    \item The probability of a router not forwarding a packet during a timestep can be estimated from packet delay metrics.
+    \item A router can be classified as exhibiting nefarious behaviour or not using information gained from packet delay metrics.
 \end{enumerate}
 As real world use of network tomography is exponentially more complex than previous mathematical models in tackling sub-hypothesis 1 we introduce an alternative and novel method of \pdv tomography in \cref{sec:Iinferentialtechniques}. To evaluate sub-hypothesis 2 we perform a series of experiments varying network parameters in \cref{sec:MNefidentification}. From these we identify a parametric function that is able to map packet delay metrics to a routers probability of delaying packets.\par
 Compared to previous theoretical methods our approach classifies nefarious nodes less accurately and less precisely. However, we utilise optimization techniques presented in \cref{sec:Boptimization} and \cref{ssec:Bparsppselection} to maximise the accuracy of our new methods. To measure the impact of optimisations we quantifying the maximum potential accuracy of our inference using statistical methods from link focused tomography in \cite{he_fisher_2015}. We represent all known information about the network using its Fisher information (see \cref{ssec:Bfisherinformation}). This representation results in the Cramér–Rao Bound covered in \cref{ssec:Bcrb} being analogous to maximum potential accuracy of our analysis.\par
 Additionally we hope this work on the power of tomography in an adversarial setting will spur interest in the fledgling field of adversarial tomography. We note few studies on the topic have been conducted currently (\cite{he_network_2021}) and believe further research in this area could be extremely beneficial to the security and networking communities.
+
 \section{Stochastic Network Tomographic Models}
 \label{sec:Imodels}
 
@@ -101,8 +100,6 @@ Drawbacks noted in the development of this solution were its sensitivity to netw
 \label{ssec:Idevelopedmodels}
 As a part of this work we have developed a network tomographic model within python for bespoke simulation in a constrained environment. We briefly summarize our improvements to the model in this section, referring to elaborations within \cref{cha:background} and \cref{cha:methodology} for where relevant. The main adaptations to the existing model, covered in \cref{sec:Broutingmechanisms} are: decentralization of background routing logic, and distinction of probe packets from background traffic. Additionally we implemented two optimisations in the model: selection of a minimal set of paths to send probe packets over, and probabilistic injection of probe packets over each of these paths, we elaborate on these in \cref{sec:Boptimization}.\par
 These additions were made to enable \pdv and other stochastic tomographic approaches outlined in \cref{sec:Mnetworkprobing} to be used in inferential analysis. Finally we highlight minor features to better emulate real world network behaviour such as the halting of probe injection before the end of the simulation run time in \cref{sec:Mnetworkprobing}. This halting is intended to represent real world situations where an administrator would run a network diagnostic for a set amount of time while the network is under load. We refer to this period of actively probing the network as a \textit{measurement interval} - utilizing this concept further in \cref{ssec:Iex4router}.
-
-\newpage
 
 \section{Core Concepts}
 \label{sec:Icoreconcepts}
@@ -206,4 +203,4 @@ From these distributions we compute the mean and delay variance for each path, o
 
 In this section we have posed the problem of improving existing network tomography simulations. We noted the utility of approaching this goal as 3 separate but related problems of metric inference, information processing, and optimisations. We formally posed an overarching hypothesis that network tomography can be used to estimate routers' buffer queue lengths with sufficient accuracy to enable inference of packet delaying behaviour by individual routers within real world networks. To better fit our decomposition of the problem we broke this hypothesis into two independent sub-hypotheses.\par
 This decomposition of the problem and overarching hypothesis was justified through the ability of work from each stage being entirely self contained. The network can be generated and stored then later given to the traffic simulation. Likewise metrics from the traffic simulation can be stored and later used to calculate probabilities of a given router being nefarious.\par
-Optimisation to the code for time complexity were highlighted as desirable as they allow larger simulations to be run using available compute resources. Extended simulation run time's allow for statistical approximations from the model to converge as noted in \cref{sec:Aqueuestabilization}. The ability to handle larger networks also allows for simulation of real world networks national ISP networks (\cite{knight_internet_2011}, \cite{orlowski_sndlib_2007}), a key requirement for addressing our hypothesis. The final artifact of code is presented and made available at (\cite{sylvester_millar_real_2021}) in hopes that future work will be able to use this to further expand on this area of work, specific extensions are highlighted in \cref{cha:conc}.
+Optimisation to the code for time complexity were highlighted as desirable as they allow larger simulations to be run using available compute resources. Extended simulation run time's allow for statistical approximations from the model to converge as noted in Appendix B. The ability to handle larger networks is a key requirement for addressing our hypothesis as it allows for simulation of real world national ISP networks such as those provided in \cite{knight_internet_2011} and \cite{orlowski_sndlib_2007}. The final artifact of code is presented and made available at (\cite{sylvester_millar_real_2021}) in hopes that future work will be able to use this to further expand on this area of work, specific extensions are highlighted in \cref{cha:conc}.
