@@ -27,6 +27,8 @@ Note that we can represent a tomographic problem as a system of $P^*f'(\theta)=\
 \end{mdframed}
 \todo{Integrate this into this section}
 
+  Using Ma's monitor placement algorithm a minimum sufficient subset of routers are designated as having monitors. Probe paths between these monitors are then calculated using the spanning tree based construction method.
+
 To best utilise previous work on tomography we generalise our network as an $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where $|\gls{routers}|$ is the number of routers. The $i$th$\times j$th entry of the matrix is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. Using this notation we are able to express the example network shown in \cref{fig:6routersample} as the adjacency matrix $A$:
 
 \begin{figure}[H]
@@ -197,14 +199,17 @@ Need to discuss halting probe packet injection before the end of the measurement
   
   \subsection{Estimating Hold Probability from Packet Delay Metrics}
   \label{ssec:pdatoholdprob}
-  To establish a relationship between router packet delay metrics and hold probability we  consider 100 randomly generated topologies, 50 using BA and 50 using ER. Randomly generated topologies are used in-place of the limited number real world topologies to ensure results are robust. We assume that there is an underlying parameterised relationship between a routers hold probability and buffer queue length. With the relationship being parameterised over the two variable network parameters: max buffer queue length and background traffic intensity.\par
+  To establish a relationship between router packet delay metrics and hold probability we  consider 100 randomly generated topologies between 10-50 nodes, 50 generated using BA and 50 using ER. Randomly generated topologies are used in-place of the limited number real world topologies to ensure results are robust. We assume that there is an underlying parameterised relationship between a routers hold probability and buffer queue length. With the relationship being parameterised over the two variable network parameters: max buffer queue length and background traffic intensity.\par
   To determine this relationship we simulate each topology with a combinations of max queue length from  200-5,000 and background traffic intensity from 0.1-0.5, each for 10,000 time steps. For each combination of parameters the hold probability of a randomly selected nefarious router is varied from 0.1-0.9. The PDA of the router is recorded along with the corresponding hold probability. Results are then graphed using a scatter plot to visually approximate and display the relationship between these router attributes.\par
-  To map an arbitrary hold value to a measured PDA or vice-versa we fit a function to these discrete observed data points. This curve fitting is done using the curve\_fit function of SciPy's optimize class provided with an initial guess for the minimum and maximum values of the function as 0 and the maximum queue length respectively. We use Levenberg–Marquardt minimisation for the fitting as it was found to be the best performing from those available. For transparency we present results when curve fitting using Trust Region Reflective and Rectangular Trust Region Dogleg minimisation algorithms in Appendix D.\par
-
+  To map an arbitrary hold value to a measured PDA or vice-versa we fit a function to these discrete observed data points. This curve fitting is done using the curve\_fit function of SciPy's optimize class provided with an initial guess for the minimum and maximum values of the function as 0 and the maximum queue length respectively. We use Levenberg–Marquardt minimisation for the fitting as it was found to be the best performing of algorithms within SciPy's library. For transparency we present results for curve fitting using Trust Region Reflective and Rectangular Trust Region Dogleg minimisation algorithms in Appendix D.\par
+  We record the estimated curve fitting parameters from SciPy's curve fitting, noting the minimum and maximum values are approximately the supplied initial guesses. Finally variation of the functions parameters w.r.t max queue length and background traffic intensity were modeled to enable estimation of the PDA to hold probability relation given only network parameters.\par
+  Using the calculated estimation of hold probability we vary the hold probability required to be classified as nefarious from 0.0-1.0. We then generate a receiver operating characteristic curve to evaluate the efficacy of our classification.
+ 
+  
   \subsection{Classification with Inferred Values}
   \label{ssec:MInferredvalues}
   
-  Using Ma's monitor placement algorithm a minimum sufficient subset of routers are designated as having monitors. Probe paths between these monitors are then calculated using the spanning tree based construction method.
+  We now combine methods from \cref{sec:Mnetworkprobing} and \cref{sec:MNefidentification} to evaluate our overarching hypothesis that network tomography can be used to identify nefarious routers. This is analogous to cases 2 and 3 from \cref{ssec:MTruevalues}, where summary statistics of router queue lengths are used to classify routers as nefarious. Case 1 is not applicable as...
 
     To consider:
     \begin{itemize}
@@ -214,7 +219,6 @@ Need to discuss halting probe packet injection before the end of the measurement
             \item Network background traffic
             \item Network topology
         \end{itemize}
-        \item Done robustly using generated network topologies - 50 ER and 50 BA with varying \# of routers from 30-100, varying queue length and background traffic in each, measuring PDA
     \end{itemize}
 
   \subsection{Nefarious Classification Comparison}
