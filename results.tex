@@ -4,10 +4,31 @@ In this section we present a simplified synthetic computer network developed in 
 \todo{Very brief outline of accuracy changes based on A/D optimality, (it went up/down by x)}
 Finally we construct a simulated network using real world topological and traffic data-sets within the NS3 framework to test our new method's performance in real world networks, formulating a quantitative response to our project's overarching goal.
 
-\section{Nefarious Router Detection}
+\section{Tomographic Inference}
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{figs/results/Probe_PDV_accuracy_plot.png}
+        \caption{Accuracy of inference from true values over a range of probes sent.}
+        \label{fig:Rqstabilization}
+\end{figure}
+In this section the accuracy of tomographic predictions w.r.t node packet delay metrics are tested.
+
+\subsection{Metric Normalisation}
+\label{ssec:Rmetricnormalisation}
+The delay distribution and by extension delay variation at a single router is intuitively a combination of the two contributors to \gls{qlen} within the system:
+\begin{enumerate}
+    \item The \# of packets a router receives.
+    \item The \# of packets a router sends.
+\end{enumerate}
+Contributor \emph{2} is always a fixed rate of 1 packet per time step unless a router is nefarious in which case it will be $<1$ proportional to the router's probability of holding a packet. As the rate of sending is not impacted by contributor \emph{1} we account for variation of contributor \emph{1} between routers to increase the transparency of queuing delay due to variations by contributor \emph{2} within the network.\par
+The variation in contributor \emph{1} is proportional to the degree of each node as the number of packets being received by a router each time step is the sum of packets received from each link. Initially we utilized $\sqrt{\gls{routerdeg}}$ for normalization over delay observations by taking $\forall r\in R, \frac{\sigma^2}{\sqrt{\gls{routerdeg}}}$ where $\sigma^2$ is the variance of delay measurements.
+\todo{Show results for inferential accuracy RE probing a network where nefarious router has << switches than a non-nef, to demonstrates why we want to normalise for the number of links. }
+
+\section{Identifying Nefarious Behaviour}
 \label{sec:Rnefarouterdetection}
 
-\subsection{Packet Delay Inference Validity}
+\subsection{Baseline Network Validation}
+\subsubsection{Packet Delay Inference Validity}
 To test our core hypothesis that packet delay metrics are a valid indicator of nefarious packet delaying router behaviour we consider a baseline 6 router network from \cref{sec:Mnetworkprobing} shown in \cref{fig:M6routertop}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0,\dots, r_5$ designed as nefarious in each experiment respectively. Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations were collected from each router every timestep post queue stabilization. Plots of router packet delay average (PDA) and variation (PDV) are shown in \cref{fig:Rvarnefrouter}.\par
 Initially all nefarious router packet delay metrics were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDA, and consequently PDV, were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}. From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively however they have an average inter-group variance of 862.99. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. We investigate of the cause and impacts of this symmetry in \cref{sec:Asympathicpdv}.\par
 Using these grouping its clear that the nefarious router's PDA differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDA $\approx$3232 times larger than that of the 2nd largest PDA. Of interest is the behaviour of $r_0$ and $r_5$ when nefarious as although these routers connect to half as many routers as the others their nefarious behaviour can still be inferred through PDA.\par
@@ -130,7 +151,7 @@ To investigate if these trends of PDA and PDV hold over arbitrary network topolo
     \label{fig:Rrandgraphpdv}
 \end{figure}
 
-\subsection{Packet Delay Inference Robustness}
+\subsubsection{Packet Delay Inference Robustness}
 Once again considering the baseline network in \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
 
 \subsubsection*{Router Queue Buffer Length}
@@ -167,25 +188,26 @@ To quantify the relationship between queue length and the produced sigmoid we ca
 
 \subsubsection*{Background Traffic Intensity}
 
-\section{Tomographic Inference}
-\begin{figure}[H]
-        \centering
-        \includegraphics[width=\textwidth]{figs/results/Probe_PDV_accuracy_plot.png}
-        \caption{Accuracy of inference from true values over a range of probes sent.}
-        \label{fig:Rqstabilization}
-\end{figure}
-In this section the accuracy of tomographic predictions w.r.t node packet delay metrics are tested.
+\subsection{Real World Networks}
+\label{ssec:nefidrealworld}
 
-\subsection{Metric Normalisation}
-\label{ssec:Rmetricnormalisation}
-The delay distribution and by extension delay variation at a single router is intuitively a combination of the two contributors to \gls{qlen} within the system:
-\begin{enumerate}
-    \item The \# of packets a router receives.
-    \item The \# of packets a router sends.
-\end{enumerate}
-Contributor \emph{2} is always a fixed rate of 1 packet per time step unless a router is nefarious in which case it will be $<1$ proportional to the router's probability of holding a packet. As the rate of sending is not impacted by contributor \emph{1} we account for variation of contributor \emph{1} between routers to increase the transparency of queuing delay due to variations by contributor \emph{2} within the network.\par
-The variation in contributor \emph{1} is proportional to the degree of each node as the number of packets being received by a router each time step is the sum of packets received from each link. Initially we utilized $\sqrt{\gls{routerdeg}}$ for normalization over delay observations by taking $\forall r\in R, \frac{\sigma^2}{\sqrt{\gls{routerdeg}}}$ where $\sigma^2$ is the variance of delay measurements.
-\todo{Show results for inferential accuracy RE probing a network where nefarious router has << switches than a non-nef, to demonstrates why we want to normalise for the number of links. }
+\noindent
+\begin{table}[H]
+    \centering
+    \aboverulesep = 0pt
+    \belowrulesep = 0pt
+    \begin{tabular}{l|cc}
+        {\backslashbox{\textit{Actual}}{\textit{Predicted}}} & {Nefarious} & {Non-nefarious}\\
+        \midrule
+        {Nefarious}     & 1807  & 0     \\
+        {Non-nefarious} & 37    & 3018  \\
+    \end{tabular}
+    \caption{Confusion matrix for nefarious router prediction within the Nobel-Germany topology using KS true value comparison and a p-val cutoff of 0.}
+    \label{tab:ngercmatrix}
+\end{table}
+\[
+-\frac{\frac{log(-240.5)}{1011.8}}{14.5}+0.4
+\]
 
 \section{Optimization Impacts}
 \label{sec:Rprobingoptimality}
