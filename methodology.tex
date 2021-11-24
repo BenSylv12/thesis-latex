@@ -2,14 +2,13 @@
 \label{cha:methodology}
 In this chapter we present a breakdown of tools and techniques used in experimental analysis. We partition our approach into three categories, each focused on addressing a particular section of our overarching hypothesis. We firstly discuss the implementation of our network simulation environment and list of produced tools in \cref{sec:Msimenvironment}. In this section we additionally cover the technical implementations of the network, probe paths, and other data structure choices. Secondly we explain our approach to testing the sub-hypothesis that network tomography enables inference of node level packet delay metrics within stochastically routing networks. We detail specifics of how we have applied network tomography and evaluated its accuracy w.r.t inferring node level metrics in \cref{sec:Mnetworkprobing}.\par
 In \cref{sec:MNefidentification} we give an overview of our approach to determining router level nefarious hold probability in . In this analysis we identify a novel parametric relationship between router hold probability and packet delay. We then show how this relationship can be inverted to estimate router hold probability from packet delay. Coupled with this we present a secondary approach which requires ground truth metrics of the network known to have no nefarious routers.\par
-Thirdly in \cref{sec:Moptprobing} we present the idea of the tomographic pipeline to segment the complex process of network tomography. We then cover our implementation of two optimisations to the tomographic pipeline using techniques introduced in \cref{cha:background}. Finally in \cref{sec:Mevaltechniques} we present methods we use for evaluating the significance of our findings and presenting results empirically.
+Thirdly in \cref{sec:Moptprobing} we present the idea of the tomographic pipeline to segment the complex process of network tomography. We then cover our implementation of two optimisations to the tomographic pipeline using techniques introduced in \cref{cha:background}.
 
 \section{Simulation Environment and Tools}
 \label{sec:Msimenvironment}
 In this section we present the python modules developed for the testing of our overarching hypothesis. We explain implmentation details and justifications behind choices we have made during the development process.
 
 \cite{virtanen_scipy_2020}
-
 
 \section{Inferring Packet Delay Metrics}
 \label{sec:Mnetworkprobing}
@@ -146,7 +145,7 @@ From this we define router identifiability as:
 
 
 \textbf{Need to discuss halting probe packet injection before the end of the measurement interval to give them time to drain from router queues. (Show results for stopping and not stopping w.r.t inferred and actual packet loss rates in results)}
-    
+
 \section{Identifying Nefarious Behaviour}
 \label{sec:MNefidentification}
   In our problem setting nefarious behaviour is characterized by a router probabilistically \textit{delaying} packets by not forwarding them during a timestep. As noted in previous chapters we refer to a router's probability of delaying a packet during a timestep as its \textit{hold probability}. To classify a router as behaving nefariously we require a metric that is impacted by this nefarious behaviour and identifiable using network tomography. We postulate that packet delay, serving as a proxy for router buffer queue length, is an appropriate metric. We therefore hypothesise that a router can be classified as exhibiting nefarious behaviour using information gained from packet delay metrics.\par
@@ -214,8 +213,6 @@ From this we define router identifiability as:
   In assumption case 3 where there are no baseline metrics to compare against we use our derived hold probability mapping function from \cref{ssec:pdatoholdprob}. We model the relationship as a standard sigmoid curve with it's parameters derived from fixed network attributes, primarily the router buffer queue length and background traffic intensity.\par
   For comparison of classifiers under each case of assumptions we consider both a graphic and a numeric presentation of their performance. To evaluate the relative general performance of each method we qualitatively compare the ROC curves produced by each classifier. For a more rigorous quantitative comparison we consider three scenarios covering the spectrum of sensitivity and specificity requirements. Scenario one requires a false negative rate of <2\% and represents a government network with a large budget where compromised routers present a massive risk. Scenario two requires a minimal false positive rate while achieving a false negative rate <25\% and represents a budget restricted cloud provider with quality of service obligations they wish to meet at minimal cost. Scenario three requires a false positive rate of <5\% and represents an organisation monitors a network of honeypot servers intended to be compromised who wants to avoid manual analysis of non-compromised machines.\par
   We considered using a statistical approach with a one-sided hypothesis test evaluating the proportion of routers correctly classified by each classifier.  
-  
-  
 
 \section{Optimising Inferential Accuracy}
 \label{sec:Moptprobing}
@@ -288,9 +285,6 @@ Using $\widehat{\mathcal{L}}(q, p)$ we are able to represent a network as a FIM,
 \end{figure}
 
 We examine three different probe allocations between [$p_0,\:p_1$]: $\phi_0$ = [0.33, 0.33, 0.33],  $\phi_1$ = [0.1, 0.8, 0.1], and $\phi_2$ = [0.8, 0.1, 0.1]. As there are no nefarious routers each router has an equal expected true PDV, let these true PDV's be $r_0=1, r_1=1, r_2=1$, the CRB of each probe allocation is then $\phi_0$=2.69, $\phi_1$=5.97, $\phi_2$=5.97. Recalling that the CRB provides a lower bound on inferential accuracy, the equal allocation of probes between paths results in the lowest inferential accuracy, this also holds when nefarious behaviour is included. Suppose the case of $r_1$ being nefarious with a $\frac{1}{3}$ probability of holding a packet any timestep, resulting in an increased PDV of 3 the CRB of each probing scheme is then $\phi_0$=1.51, $\phi_1$=4.24, $\phi_2$=2.05. Although each probing scheme performs worse it is clear that $\phi_0$ is comparatively even worse at detecting the increased PDV of the nefarious router than the case of no nefarious nodes. Note for comparison that in the previous case of being $r_1$ nefarious a pseudo optimal probing allocation $\phi_{optimal}$ = [0.0, 0.5, 0.5] results in a CRB of 33.67.
-
-\section{Evaluation Techniques}
-\label{sec:Mevaltechniques}
 
 \section{Summary}
 \todo{Once chapter is finished recap what we showed with a reference to each section.}

@@ -205,6 +205,33 @@ To quantify the relationship between queue length and the produced sigmoid we ca
     \caption{Confusion matrix for nefarious router prediction within the Nobel-Germany topology using KS true value comparison and a p-val cutoff of 0.}
     \label{tab:ngercmatrix}
 \end{table}
+\noindent
+\begin{table}[H]
+    \centering
+    \aboverulesep = 0pt
+    \belowrulesep = 0pt
+    \begin{tabular}{l|cc}
+        {\backslashbox{\textit{Actual}}{\textit{Predicted}}} & {Nefarious} & {Non-nefarious}\\
+        \midrule
+        {Nefarious}     & 2781  & 101     \\
+        {Non-nefarious} & 101    & 2658  \\
+    \end{tabular}
+    \caption{Confusion matrix for nefarious router prediction within the France topology using KS true value comparison and a p-val cutoff of 0.}
+    \label{tab:frncecmatrix}
+\end{table}
+\begin{table}[H]
+    \centering
+    \aboverulesep = 0pt
+    \belowrulesep = 0pt
+    \begin{tabular}{l|cc}
+        {\backslashbox{\textit{Actual}}{\textit{Predicted}}} & {Nefarious} & {Non-nefarious}\\
+        \midrule
+        {Nefarious}     & 1905  & 46     \\
+        {Non-nefarious} & 413   & 1896   \\
+    \end{tabular}
+    \caption{Confusion matrix for nefarious router prediction within the Norway topology using KS true value comparison and a p-val cutoff of 0.}
+    \label{tab:nrwycmatrix}
+\end{table}
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
@@ -212,7 +239,7 @@ To quantify the relationship between queue length and the produced sigmoid we ca
         \caption{Assumption set 2.}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \missingfigure
+        \includegraphics[width=\textwidth]{figs/results/case3_roc.png}
         \caption{Assumption set 3.}
     \end{subfigure}
     \caption{Receiver operating characteristic of nefarious router classification under differing assumptions sets.}
