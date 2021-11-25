@@ -3,14 +3,6 @@
 In this section we present a simplified synthetic computer network developed in Python, validation of the models correctness with respect to assumptions regarding queue length stabilization can be found in appendix B. Once validated we apply baseline techniques introduced in \cref{cha:methodology} to test our new methods for nefarious router identification. We compared these results to previous analytical techniques, highlighting trade-offs in accuracy for generally applicability, deploy-ability and run time within \cref{sec:Rnefarouterdetection}. During this analysis several interesting behaviours were encountered in edge cases, these findings are shown and further experiments conducted on hypothesised explanations for the behaviour within \cref{sec:Asympathicpdv} and \cref{ssec:Rmetricnormalisation}. Of particular noteworthiness is that the investigation into unexpectedly poor inferential results from router level \pdv  behaviour in \cref{ssec:Rmetricnormalisation} revealed a flaw within previous work's inferential calculation, necessitating changes to the experimental methodology. We then move to testing the impacts of optimal probe allocation techniques on our inferential accuracy in \cref{sec:Rprobingoptimality}, ...\par
 \todo{Very brief outline of accuracy changes based on A/D optimality, (it went up/down by x)}
 Finally we construct a simulated network using real world topological and traffic data-sets within the NS3 framework to test our new method's performance in real world networks, formulating a quantitative response to our project's overarching goal.
-
-\section{Tomographic Inference}
-\begin{figure}[H]
-        \centering
-        \includegraphics[width=\textwidth]{figs/results/Probe_PDV_accuracy_plot.png}
-        \caption{Accuracy of inference from true values over a range of probes sent.}
-        \label{fig:Rqstabilization}
-\end{figure}
 In this section the accuracy of tomographic predictions w.r.t node packet delay metrics are tested.
 
 \subsection{Metric Normalisation}

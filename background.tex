@@ -40,8 +40,201 @@ As the network being generated and analyzed continues to increase in size we exp
     Uncontrollable routing refers to when P is limited to only paths that the background traffic's link-state routing protocol establishes, given the dynamic nature of this routing we are unable to established a fixed $P$ violating the assumptions of our probe path routing, as such we will not consider UR in our analysis. Previous work in \cite{barnes_stochastic_2020} has established that in a stochastic routing network using UR for probe paths router identifiability cannot be established and a prohibitively computationally expensive Markov Chain Monte Carlo (MCMC) (\cite{dellaportas_bayesian_2002}) based estimation method must be used instead.\par
     
     Arbitrarily controllable routing represents the ideal case where a probe packet traverse every link and router as many times as desired. This form of routing is analogous to that afforded by SDN and other strict source routing architectures (\cite{university_of_southern_california_darpa_1981}, \cite{open_networking_foundation_openflow_2015}) and allows for complete router identifiability using only a single arbitrarily placed monitor (\cite{he_network_2021}). Due to the triviality of router identification and limited SDN use cases in real world networks (\cite{jarschel_interfaces_2014}) under this scheme we will not consider ACR in our analysis.\par
-    
-    The remaining routing mechanisms CBR and CFR represent routing mechanisms within all optical (\cite{ahuja_srlg_2011}) and multi protocol label switching (MPLS) networks (\cite{rosen_multiprotocol_2001}) respectively. In CBR a packet may traverse a router any number of times but only traverse each link once, in contrast under CFR a packet may only traverse every router and link at most once. As routing restrictions under CBR are relaxed compared to those under CFR we note that for all topologies $max(P)|CFR \subseteq max(P)|CBR$. Both these mechanisms are widely used and provide an interesting set of limitations while still allowing for unique router identifiable, we will therefore focus on these in our analysis, mentioning UR and ACR only in relevant edge cases.
+    The remaining routing mechanisms CBR and CFR represent routing mechanisms within all optical (\cite{ahuja_srlg_2011}) and multi protocol label switching (MPLS) networks (\cite{rosen_multiprotocol_2001}) respectively. In CBR a packet may traverse a router any number of times but only traverse each link once, in contrast under CFR a packet may only traverse every router and link at most once. As routing restrictions under CBR are relaxed compared to those under CFR for all topologies $max(P)|CFR \subseteq max(P)|CBR$. Both these mechanisms are widely used in the real world and provide an interesting set of limitations while still allowing for unique router identifiable, we therefore focus on these in our analysis.
+
+\section{Network Tomography}
+\label{sec:Bnetworktomography}
+In this section we describe how additive network tomography is used for network analysis. We analyse a small four router network to give a worked example of computing router packet delay metrics from end-to-end metrics. We then present a typical matrix representation of networks and the process of calculating probe paths using a seven router topology.
+
+\subsection{Inferring Node Metrics}
+\label{ssec:B4routerexample}
+Consider a 4 router network with a ring topology and monitored switches at routers 0 and 3 as shown in \cref{fig:4routereg}.
+
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{4routertopology}
+    \begin{tikzpicture}[
+        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
+        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
+        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
+        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
+        
+        % Routers
+        \node[router] (r0) at (-2.5,0) {$r_0$};
+        \node[nef_router] (r1) at (0,1.5)  {$r_1$};
+        \node[router] (r2) at (0,-1.5) {$r_2$};
+        \node[router] (r3) at (2.5,0)  {$r_3$};
+
+        %Switches
+        \node[monitor](s00) at (-4,0)   {$s_{0,0}$};
+        \node[monitor] (s30) at (4,0)   {$s_{3,0}$};
+
+        %Links
+        \draw[-] (r0.east) -- (r1.west);
+        \draw[-] (r0.east) -- (r2.west);
+        \draw[-] (r1.east) -- (r3.west);
+        \draw[-] (r2.east) -- (r3.west);
+        \draw[-] (r0.west) -- (s00.east);
+        \draw[-] (r3.east) -- (s30.west);
+        
+        % Probe path visualizations.
+        \node at (1.75,1.75) {$p_0$};
+        \draw[dash pattern=on 3pt off 5pt, line width=.5mm, <->] plot[smooth, tension=.2] coordinates{(-4,0.5) (-2.5,0.5) (-2,0.83) (-0.5,2) (0,2.18) (0.5,2) (2,0.83) (2.5,0.5) (4, 0.5)};
+        \node at (1.75,-1.75) {$p_1$};
+        \draw[dash pattern=on 3pt off 5pt, line width=.5mm, <->] plot[smooth, tension=.2] coordinates{(-4,-0.5) (-2.5,-0.5) (-2,-0.83) (-0.5,-2) (0,-2.18) (0.5,-2) (2,-0.83) (2.5,-0.5) (4,-0.5)};
+    \end{tikzpicture}
+    \caption{Example 4 router network.}
+    \label{fig:4routereg}
+\end{figure}
+
+Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at any time step. From \cref{fig:4routereg} we can see that from $s_{0,0}$ to $s_{3,0}$ there are two possible paths a packet may take: $r_0\rightarrow r_1\rightarrow r_3$ and $r_0\rightarrow r_2\rightarrow r_3$, let these paths be $p_0$ and $p_1$ respectively. Suppose we send 2,000 probe packets between $s_{0,0}$ and $s_{3,0}$, let $\phi_0$ and $\phi_1$ be the probability of a packet being sent along $p_0$ or $p_1$ respectively.\par
+At the end of the measurement interval, the difference in time from each packet being sent from $s_{0,0}$ and the received by $s_{3,0}$ is recorded to calculate the delay of each packet. Ignoring background traffic for illustrative proposes we obtain the delay histograms shown in \cref{fig:ppdelayhist}. Visually we can confirm our expectation of the path with the delaying router $r_1$ having a heavier tailed distribution.\par
+\begin{figure}[H]
+    \begin{subfigure}[b]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/intro/p0_delayhist.png}
+        \caption[]{Delays over $p_0$.}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/intro/p1_delayhist.png}
+        \caption[]{Delays over $p_1$.}
+    \end{subfigure}
+    \caption{Histograms of probe path level delays for a 4 router ring network.}
+    \label{fig:ppdelayhist}
+\end{figure}
+From these distributions we compute the mean and delay variance for each path, obtaining the values shown in \cref{tbl:4routerstats}. In this analytical approach the correlation between nefarious router behaviour and path level packet delay becomes glaringly obvious with an almost 200\% increase of delay variance in the path $p_0$ containing the nefarious router $r_1$. Probe path level analysis as we have conducted here however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$, if either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics in \cref{sec:Mnetworkprobing} .
+\begin{table}[H]
+    \centering
+    \begin{tabular}{@{}ccc@{}}
+        \toprule
+        & \multicolumn{2}{c}{\textbf{Probe path}}\\
+        \cmidrule(lr){2-3}
+        Measure & $p_0$ & $p_1$ \\
+        \midrule
+        $\bar{x}$   & 3.03 & 2.04 \\
+        $\sigma$    & 1.42 & 0.19 \\
+        $\sigma^2$  & 2.03 & 0.03 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Measures of center and spread for packet delays in a 4 router network.}
+    \label{tbl:4routerstats}
+\end{table}
+
+\subsection{Probe Path Calculation}
+\label{ssec:B7routerexample}
+We generalise networks as a binary $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where $|\gls{routers}|$ is the number of routers. The $i$th$\times j$th entry of the matrix is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. Using this notation we are able to express the example network shown in \cref{fig:6routersample} as the adjacency matrix $A$:
+
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{6routertopology}
+    \begin{tikzpicture}[
+        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
+        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
+        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
+        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
+        
+        % Routers
+        \node[router] (r0) at (-4.5,0)    {$r_0$};
+        \node[router] (r1) at (-1.5,1.5)  {$r_1$};
+        \node[router] (r2) at (-1.5,-1.5) {$r_2$};
+        \node[router] (r3) at (1.5,1.5)   {$r_3$};
+        \node[router] (r4) at (1.5,-1.5)  {$r_4$};
+        \node[router] (r5) at (4.5,0)     {$r_5$};
+        
+        %Switches
+        \node[monitor](s00) at (-6,.75)   {$s_{0,0}$};
+        \node[switch] (s01) at (-6,-.75)  {$s_{0,1}$};
+        \node[switch] (s10) at (-1.5,3)   {$s_{1,0}$};
+        \node[switch] (s20) at (-1.5,-3)  {$s_{2,0}$};
+        \node[switch] (s30) at (1.5,3)   {$s_{3,0}$};
+        \node[switch] (s40) at (1.5,-3)   {$s_{4,0}$};
+        \node[switch] (s50) at (6,.75)   {$s_{5,0}$};
+        \node[monitor](s51) at (6,-.75)   {$s_{5,1}$};
+        %Links
+        \draw[-] (r0.east) -- (r1);
+        \draw[-] (r0.east) -- (r2);
+        \draw[-] (r1) -- (r2);
+        \draw[-] (r1) -- (r3);
+        \draw[-] (r1.south east) -- (r4.north west);
+        \draw[-] (r2) -- (r3);
+        \draw[-] (r2) -- (r4);
+        \draw[-] (r3) -- (r4);
+        \draw[-] (r3) -- (r5.west);
+        \draw[-] (r4) -- (r5.west);
+        \draw[-] (s00.east) -- (r0.west);
+        \draw[-] (s01.east) -- (r0.west);
+        \draw[-] (s10) -- (r1);
+        \draw[-] (s20) -- (r2);
+        \draw[-] (s30) -- (r3);
+        \draw[-] (s40) -- (r4);
+        \draw[-] (s50.west) -- (r5.east);
+        \draw[-] (s51.west) -- (r5.east);
+    \end{tikzpicture}
+    \caption{6 router network with 2 monitors located at $r_0$ and $r_5$}
+    \label{fig:6routersample}
+\end{figure}\par
+
+\begin{equation}\label{eq:6routeradjmatrix}
+    A = \begin{bmatrix} 
+        0 & 1 & 1 & 0 & 0 & 0 \\
+        1 & 0 & 1 & 1 & 1 & 0 \\
+        1 & 1 & 0 & 0 & 0 & 0 \\
+        0 & 1 & 1 & 0 & 1 & 1 \\
+        0 & 1 & 1 & 1 & 0 & 1 \\
+        0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
+\end{equation}
+
+We use this method of network representation as it interfaces best with existing network tomography techniques and is spatially efficient implementation. On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
+As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. The set of probe paths used $\gls{p*}$ is represented using a $|\gls{p*}|\times |\gls{routers}|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $\gls{p*}$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
+\[
+    P'=\begin{bmatrix}
+        1 & 1 & 0 & 0 & 1 & 1\\ 
+    \end{bmatrix}
+\]
+Such a choice a $P$ would be useless however as it does not allow any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with full column rank, such as:
+\begin{equation}
+\label{eq:6routerppaths}
+    P^*=\begin{bmatrix}
+            p_0 \\
+            p_1 \\
+            p_2 \\
+            p_3 \\
+            p_4 \\
+    \end{bmatrix} = 
+    \begin{bmatrix}
+            1 & 1 & 0 & 0 & 1 & 1 \\
+            1 & 1 & 0 & 1 & 0 & 1 \\
+            1 & 1 & 0 & 1 & 1 & 1 \\
+            1 & 0 & 1 & 0 & 1 & 1 \\
+            1 & 1 & 1 & 0 & 1 & 1 \\
+    \end{bmatrix}
+\end{equation}
+Using $P^*$ from \cref{eq:6routerppaths} we are able to compute a vector containing only $r_1$ through subtraction of row-vectors:
+\begin{align}
+\label{eq:r1computation}
+    \begin{split}
+        r_1 &= p_4-p_3\\
+        &= \rowvect{1\;1\;1\;0\;1\;1} - \rowvect{1\;0\;1\;0\;1\;1}\\
+        &= \rowvect{0\;1\;0\;0\;0\;0}\\
+    \end{split}
+\end{align}\par
+As discussed in \cref{sec:Mnetworkprobing} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnetworkprobing}.\par
+Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}+\gls{urouters}$.\par
+Given this, we ignore \gls{urouters} and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in \gls{irouters}$ following conventions in \cref{eq:r1computation} to give the set of router level metrics \gls{metrics}:
+\begin{equation*}
+    M = 
+    \begin{cases}
+    r_1, & p_4-p_3\\
+    r_2, & p_4-p_0\\
+    r_3, & p_2-p_0\\
+    r_4, & p_2-p_1\\
+    \end{cases}
+\end{equation*}
+Resulting from this representation we define router identifiability succinctly as:
+\begin{equation}
+\label{eq:identifiability}
+    \forall r \in R_I,\;r \in M 
+\end{equation}
+\todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
 
 \section{Parameter Estimation}
 \label{sec:Bparameterestimation}
@@ -169,7 +362,8 @@ For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$,
 
 \section{Optimization Techniques}
 \label{sec:Boptimization}
-The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing. We decompose the measurement process into two stages: selection of paths to probe between monitor nodes and allocation of probes over these paths. In \cref{ssec:Bparsppselection} we address the first of these stages. We justify the desire for a minimal number of paths and present Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we introduce concepts of optimum experimental design with the intent of using these to compute optimal probe allocation between paths in \cref{ssec:Mpallocation}.
+The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing. We decompose the measurement process into two stages: selection of paths to probe between monitor nodes and allocation of probes over these paths.\par
+In \cref{ssec:Bparsppselection} we address the first of these stages. We justify the desire for a minimal number of paths and present Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we introduce concepts of optimum experimental design with the intent of using these to compute optimal probe allocation between paths in \cref{ssec:Mpallocation}.
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Bparsppselection}
@@ -279,7 +473,8 @@ At a high level, the problem of designing an optimal experiment is typically dec
 Experiments to infer complex model\footnote{A complex model is analogous to the mathematical representation of a multi-parametric system such as a computer network.} parameters (sometimes referred to as screening experiments) can be evaluated using a range of statistical criteria however the two most common are A-optimality and D-optimality. A-optimality minimizes the average variance of all parameter estimates or, as the diagonal elements of the FIM correspond to these variances (\cref{ssec:Bfisherinformation}), the trace of the FIM tr$\left(\gls{fi}\right)$. In contrast D-optimality minimises the confidence region around the estimators, as this confidence region is inversely proportional to the determinant of the FIM (\cite{jones_-optimal_2021}) this is equivalent to maximising $|\gls{fi}|$.\par
 
 \section{Summary}
-
 In this chapter we have introduced four major concept areas critical to the understanding of network tomography. The ER and BA random graph generation algorithms were described in \cref{sec:Bgraphgeneration} and the key properties of the graphs they produce were highlighted. The scale-free nature of graph produced by the BA methods and the desirability of this property was covered. We additionally covered the relevance of techniques for generating large data sets to allow empirical validation in spite of the lack of availability of real world topologies.\par
+
 In \cref{sec:Broutingmechanisms} we distinguish between general UDP network traffic (\textit{background traffic}) and \textit{probe packets} sent between monitored nodes. We describe four mechanisms which the routing of probe packets can be governed by and establish controllable cycle-free routing (\textit{CFR}) as the most applicable in the real world.\par
+
 In \cref{sec:Bparameterestimation} we explain three related statistical concepts: maximum likelihood estimation, Fisher information, and the Cramér–Rao bound. We explain the use of each of these within inverse problems, specifically parameter estimation. In \cref{sec:Boptimization} we present concepts of parsimonious probe path selection and optimal experiment design. We then discuss the potential for both of these techniques to improve the accuracy of network tomography.

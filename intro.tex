@@ -1,5 +1,9 @@
 \chapter{Introduction}
 \label{cha:intro}
+In this chapter we begin by outlining the justifications behind our research into this field, highlighting the absence of current work accounting for stochastic routing in the field of network tomography in \cref{sec:Imotivationandoutline}. We then identify specific sub-problems within the existing work on stochastic routing and pose solutions to these problems
+in the form of project wide scope goals.\par
+Next an overview of current models and inferential techniques used in stochastic network tomography is provided in \cref{sec:Imodels}. We these models into their three major components: network generation, traffic simulation, and inferential calculations.\par
+We then present new metrics used within our tomographic method and alternative fixed probe packet routing methods. These new approaches for stochastic tomography are compared and contrasted to current methods, with focus on trade-offs between nefarious classification confidence, method time/space complexities and model robustness in \cref{sec:Iinferentialtechniques}.\par
 
 \section{Outline and Motivation}
 \label{sec:Imotivationandoutline}
@@ -99,7 +103,7 @@ Drawbacks noted in the development of this solution were its sensitivity to netw
 \subsection{Developed Model}
 \label{ssec:Idevelopedmodels}
 As a part of this work we have developed a network tomographic model within python for bespoke simulation in a constrained environment. We briefly summarize our improvements to the model in this section, referring to elaborations within \cref{cha:background} and \cref{cha:methodology} for where relevant. The main adaptations to the existing model, covered in \cref{sec:Broutingmechanisms} are: decentralization of background routing logic, and distinction of probe packets from background traffic. Additionally we implemented two optimisations in the model: selection of a minimal set of paths to send probe packets over, and probabilistic injection of probe packets over each of these paths, we elaborate on these in \cref{sec:Boptimization}.\par
-These additions were made to enable \pdv and other stochastic tomographic approaches outlined in \cref{sec:Mnetworkprobing} to be used in inferential analysis. Finally we highlight minor features to better emulate real world network behaviour such as the halting of probe injection before the end of the simulation run time in \cref{sec:Mnetworkprobing}. This halting is intended to represent real world situations where an administrator would run a network diagnostic for a set amount of time while the network is under load. We refer to this period of actively probing the network as a \textit{measurement interval} - utilizing this concept further in \cref{ssec:Iex4router}.
+These additions were made to enable \pdv and other stochastic tomographic approaches outlined in \cref{sec:Mnetworkprobing} to be used in inferential analysis. Finally we highlight minor features to better emulate real world network behaviour such as the halting of probe injection before the end of the simulation run time in \cref{sec:Mnetworkprobing}. This halting is intended to represent real world situations where an administrator would run a network diagnostic for a set amount of time while the network is under load. We refer to this period of actively probing the network as a \textit{measurement interval}.
 
 \section{Core Concepts}
 \label{sec:Icoreconcepts}
@@ -124,80 +128,6 @@ Once packets are collected at each monitor node within the network the distribut
 The computation of an expected delay vector is however non-trivial as even its approximation is dependent on \gls{qlen}, the number of time steps and the topology of \gls{network}. As presented in \cref{ssec:Icurrentmodels}, a solution in (\cite{barnes_stochastic_2020}) uses an agent based method to analytically compute the queue lengths at each router and obtain an estimation of the delay vector under the assumption that the network topology is known a priori and iterated for enough time steps to ensure it has reached a steady state. The resulting delay distribution is then compared to the observed delay distribution using techniques from signal analysis presented by \cite{lynn_introduction_2016} to obtain a correlation metric $C$ where $C(D_x,D_y)=0$ if $D_x$ has an identical distribution to $D_y$ when both distributions are probability density functions (PDFs) normalised via L2 normalization to yield the Euclidean norm. As this correlation is the only method used to gain inference, this tomographic approach is only able identify nefarious nodes within a network; sacrificing generality to any other tomographic approach as calculation of all candidate PDFs for every possible link delay or drop configuration to infer the link delay or drop metrics would be prohibitively expensive.\par
 The agent based model used to generate these ‘candidate’ PDFs was produced under the same assumptions as the network tomographic model. As we are relaxing some of the tomographic models assumptions we anticipate that this agent based generation model will be insufficient to determine the nefarious router configuration resulting in the observed delay distributions. We therefore aim to establish the use of routing techniques other than UR along with new inference techniques of PD tomography to optimize identification of nefarious routers.
 
-
-\subsection{Simple PD Tomography Example}
-\label{ssec:Iex4router}
-\lfix{Feel like this should be moved to methodology?}
-Consider a network with 4 routers connected in a ring topology, with monitored switches at routers 0 and 3 as shown in \cref{fig:4routereg}.
-
-\begin{figure}[H]
-    \centering
-    \tikzsetnextfilename{4routertopology}
-    \begin{tikzpicture}[
-        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
-        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
-        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
-        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
-        
-        % Routers
-        \node[router] (r0) at (-2.5,0) {$r_0$};
-        \node[nef_router] (r1) at (0,1.5)  {$r_1$};
-        \node[router] (r2) at (0,-1.5) {$r_2$};
-        \node[router] (r3) at (2.5,0)  {$r_3$};
-
-        %Switches
-        \node[monitor](s00) at (-4,0)   {$s_{0,0}$};
-        \node[monitor] (s30) at (4,0)   {$s_{3,0}$};
-
-        %Links
-        \draw[-] (r0.east) -- (r1.west);
-        \draw[-] (r0.east) -- (r2.west);
-        \draw[-] (r1.east) -- (r3.west);
-        \draw[-] (r2.east) -- (r3.west);
-        \draw[-] (r0.west) -- (s00.east);
-        \draw[-] (r3.east) -- (s30.west);
-        
-        % Probe path visualizations.
-        \node at (1.75,1.75) {$p_0$};
-        \draw[dash pattern=on 3pt off 5pt, line width=.5mm, <->] plot[smooth, tension=.2] coordinates{(-4,0.5) (-2.5,0.5) (-2,0.83) (-0.5,2) (0,2.18) (0.5,2) (2,0.83) (2.5,0.5) (4, 0.5)};
-        \node at (1.75,-1.75) {$p_1$};
-        \draw[dash pattern=on 3pt off 5pt, line width=.5mm, <->] plot[smooth, tension=.2] coordinates{(-4,-0.5) (-2.5,-0.5) (-2,-0.83) (-0.5,-2) (0,-2.18) (0.5,-2) (2,-0.83) (2.5,-0.5) (4,-0.5)};
-    \end{tikzpicture}
-    \caption{Example 4 router network.}
-    \label{fig:4routereg}
-\end{figure}
-
-Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at any time step. From \ref{fig:4routereg} we can see that from $s_{0,0}$ to $s_{3,0}$ there are two possible paths a packet may take: $r_0\rightarrow r_1\rightarrow r_3$ and $r_0\rightarrow r_2\rightarrow r_3$, let these paths be $p_0$ and $p_1$ respectively. Suppose we send 2,000 probe packets between $s_{0,0}$ and $s_{3,0}$, let $\phi_0$ and $\phi_1$ be the probability of a packet being sent along $p_0$ or $p_1$ respectively.\par
-At the end of the measurement interval, the difference in time from each packet being sent from $s_{0,0}$ and the received by $s_{3,0}$ is recorded to calculate the delay of each packet. Ignoring background traffic for illustrative proposes we obtain the delay histograms shown in \cref{fig:ppdelayhist}. Visually we can confirm our expectation of the path with the delaying router $r_1$ having a heavier tailed distribution.\par
-\begin{figure}[H]
-    \begin{subfigure}[b]{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/intro/p0_delayhist.png}
-        \caption[]{Delays over $p_0$.}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/intro/p1_delayhist.png}
-        \caption[]{Delays over $p_1$.}
-    \end{subfigure}
-    \caption{Histograms of probe path level delays for a 4 router ring network.}
-    \label{fig:ppdelayhist}
-\end{figure}
-From these distributions we compute the mean and delay variance for each path, obtaining values in \cref{tbl:4routerstats}. In this analytical approach the correlation between nefarious router behaviour and path level packet delay becomes glaringly obvious with an almost 200\% increase of delay variance in the path $p_0$ containing the nefarious router $r_1$. Probe path level analysis as we have conducted here however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$, if either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics in \cref{sec:Mnetworkprobing} .
-\begin{table}[H]
-    \centering
-    \begin{tabular}{@{}ccc@{}}
-        \toprule
-        & \multicolumn{2}{c}{\textbf{Probe path}}\\
-        \cmidrule(lr){2-3}
-        Measure & $p_0$ & $p_1$ \\
-        \midrule
-        $\bar{x}$   & 3.03 & 2.04 \\
-        $\sigma$    & 1.42 & 0.19 \\
-        $\sigma^2$  & 2.03 & 0.03 \\
-        \bottomrule
-    \end{tabular}
-    \caption{Measures of center and spread for packet delays in a 4 router network.}
-    \label{tbl:4routerstats}
-\end{table}
 
 \section{Summary}
 \label{sec:Iintroductionsummary}
