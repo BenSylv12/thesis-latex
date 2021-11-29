@@ -1,188 +1,14 @@
 \chapter{Results and Discussion}
 \label{cha:result}
-In this section we present a simplified synthetic computer network developed in Python, validation of the models correctness with respect to assumptions regarding queue length stabilization can be found in appendix B. Once validated we apply baseline techniques introduced in \cref{cha:methodology} to test our new methods for nefarious router identification. We compared these results to previous analytical techniques, highlighting trade-offs in accuracy for generally applicability, deploy-ability and run time within \cref{sec:Rnefarouterdetection}. During this analysis several interesting behaviours were encountered in edge cases, these findings are shown and further experiments conducted on hypothesised explanations for the behaviour within \cref{sec:Asympathicpdv} and \cref{ssec:Rmetricnormalisation}. Of particular noteworthiness is that the investigation into unexpectedly poor inferential results from router level \pdv  behaviour in \cref{ssec:Rmetricnormalisation} revealed a flaw within previous work's inferential calculation, necessitating changes to the experimental methodology. We then move to testing the impacts of optimal probe allocation techniques on our inferential accuracy in \cref{sec:Rprobingoptimality}, ...\par
-\todo{Very brief outline of accuracy changes based on A/D optimality, (it went up/down by x)}
-Finally we construct a simulated network using real world topological and traffic data-sets within the NS3 framework to test our new method's performance in real world networks, formulating a quantitative response to our project's overarching goal.
-In this section the accuracy of tomographic predictions w.r.t node packet delay metrics are tested.
-
-\subsection{Metric Normalisation}
-\label{ssec:Rmetricnormalisation}
-The delay distribution and by extension delay variation at a single router is intuitively a combination of the two contributors to \gls{qlen} within the system:
-\begin{enumerate}
-    \item The \# of packets a router receives.
-    \item The \# of packets a router sends.
-\end{enumerate}
-Contributor \emph{2} is always a fixed rate of 1 packet per time step unless a router is nefarious in which case it will be $<1$ proportional to the router's probability of holding a packet. As the rate of sending is not impacted by contributor \emph{1} we account for variation of contributor \emph{1} between routers to increase the transparency of queuing delay due to variations by contributor \emph{2} within the network.\par
-The variation in contributor \emph{1} is proportional to the degree of each node as the number of packets being received by a router each time step is the sum of packets received from each link. Initially we utilized $\sqrt{\gls{routerdeg}}$ for normalization over delay observations by taking $\forall r\in R, \frac{\sigma^2}{\sqrt{\gls{routerdeg}}}$ where $\sigma^2$ is the variance of delay measurements.
-\todo{Show results for inferential accuracy RE probing a network where nefarious router has << switches than a non-nef, to demonstrates why we want to normalise for the number of links. }
+In this section we apply techniques introduced in \cref{cha:methodology} to test our new methods for nefarious router classification. We present results of nefarious router classification under assumption sets one, two, and three in \cref{ssec:Ras1,ssec:Ras2,ssec:Ras3} respectively. We summarise our findings and comparisons between classifier in \cref{ssec:Rnefidsummary}. Comparisons focus on classifiers two and three as classifier one uses delay distribution not obtainable with network tomography. We then present results from testing of optimised probe path selection and probe allocation in \cref{sec:Rprobingoptimality}. Validation of model correctness with respect to assumptions regarding queue length stabilisation, noted as a requirement in previous work, is presented in Appendix A.
 
 \section{Identifying Nefarious Behaviour}
 \label{sec:Rnefarouterdetection}
+For numerical analysis of classification under our proposed three assumption sets we consider the Nobel, Free, and CPLEX network topologies. This allows us to provide a robust analysis of analytical results using confusion matrices for each classification scenario. For each assumption set we discuss the classifiers performance under each scenario and provide generalised evaluations of each classifier, begin with assumption set one.
 
-\subsection{Baseline Network Validation}
-\subsubsection{Packet Delay Inference Validity}
-To test our core hypothesis that packet delay metrics are a valid indicator of nefarious packet delaying router behaviour we consider a baseline 6 router network from \cref{sec:Mnetworkprobing} shown in \cref{fig:M6routertop}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0,\dots, r_5$ designed as nefarious in each experiment respectively. Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations were collected from each router every timestep post queue stabilization. Plots of router packet delay average (PDA) and variation (PDV) are shown in \cref{fig:Rvarnefrouter}.\par
-Initially all nefarious router packet delay metrics were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDA, and consequently PDV, were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}. From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively however they have an average inter-group variance of 862.99. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. We investigate of the cause and impacts of this symmetry in \cref{sec:Asympathicpdv}.\par
-Using these grouping its clear that the nefarious router's PDA differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDA $\approx$3232 times larger than that of the 2nd largest PDA. Of interest is the behaviour of $r_0$ and $r_5$ when nefarious as although these routers connect to half as many routers as the others their nefarious behaviour can still be inferred through PDA.\par
-
-\begin{figure}[H]
-    \centering
-    \tikzsetnextfilename{6routerpdvtopology}
-    \begin{tikzpicture}[
-        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
-        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
-        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
-        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
-        
-        % Routers
-        \node[router] (r0) at (-4.5,0)    {$r_0$};
-        \node[router] (r1) at (-1.5,1.5)  {$r_1$};
-        \node[router] (r2) at (-1.5,-1.5) {$r_2$};
-        \node[router] (r3) at (1.5,1.5)   {$r_3$};
-        \node[router] (r4) at (1.5,-1.5)  {$r_4$};
-        \node[router] (r5) at (4.5,0)     {$r_5$};
-        
-        %Switches
-        \node[switch](s00) at (-6,0)   {$s_{0,0}$};
-        \node[switch] (s10) at (-1.5,3)   {$s_{1,0}$};
-        \node[switch] (s20) at (-1.5,-3)  {$s_{2,0}$};
-        \node[switch] (s30) at (1.5,3)   {$s_{3,0}$};
-        \node[switch] (s40) at (1.5,-3)   {$s_{4,0}$};
-        \node[switch] (s50) at (6,0)   {$s_{5,0}$};
-        %Links
-        \draw[-] (r0.east) -- (r1);
-        \draw[-] (r0.east) -- (r2);
-        \draw[-] (r1) -- (r2);
-        \draw[-] (r1) -- (r3);
-        \draw[-] (r1.south east) -- (r4.north west);
-        \draw[-] (r2) -- (r3);
-        \draw[-] (r2) -- (r4);
-        \draw[-] (r3) -- (r4);
-        \draw[-] (r3) -- (r5.west);
-        \draw[-] (r4) -- (r5.west);
-        \draw[-] (s00.east) -- (r0.west);
-        \draw[-] (s10) -- (r1);
-        \draw[-] (s20) -- (r2);
-        \draw[-] (s30) -- (r3);
-        \draw[-] (s40) -- (r4);
-        \draw[-] (s50.west) -- (r5.east);
-    \end{tikzpicture}
-    \caption[]{Baseline example 6 router network.}
-    \label{fig:M6routertop}
-\end{figure}
-
-As expected when the nefarious router has a hold probability of 0 it PDV mimics that of a non-nefarious router, however when the nefarious router has a very high hold probability $\gtrapprox 0.7$ we see the PDV regress to that of the rest of the network. We anticipate this behaviour is due to the use of variance as a metric, if a router is delaying all packets traversing it then its queue length will be consistently large or the queue will be completely full, varying little. If this hypothesis is true it follows that although the PDV decreases significantly over a nefarious holding probability of 0.7 the PDA would continue to increase. PDA measurements from the same experimental trials in \ref{fig:MrouterPDA} show a clear monotonic increase between PDA and holding probability, conforming to our expectations.
-
-\sisetup{retain-zero-exponent}
-\begin{table}[H]
- \centering
-  \begin{tabular}{@{}cS[table-format=1.2e1]@{}}
-   \toprule
-    \textbf{Hold Probability} & \textbf{Nefarious router} \\
-    \textbf{Range} & \textbf{PDA variance} \\
-   \midrule
-    {[}0.0, 0.1{)} & 3.03e-01  \\
-    {[}0.1, 0.2{)} & 8.89e+00  \\
-    {[}0.2, 0.3{)} & 1.49e+03  \\
-    {[}0.3, 0.4{)} & 9.78e+06  \\
-    {[}0.4, 0.5{)} & 8.54e+06  \\
-    {[}0.5, 0.6{)} & 6.77e+05  \\
-    {[}0.6, 0.7{)} & 1.03e+06  \\
-    {[}0.7, 0.8{)} & 2.84e-01  \\
-    {[}0.8, 0.9{)} & 3.13e-02  \\
-    {[}0.9, 1,0{)} & 3.10e-03  \\
-   \bottomrule
-  \end{tabular}
-  \caption{Variance of nefarious router PDA grouped by varying delay probabilities in the baseline 6 router network.}
-    \label{tbl:MrouterPDAvars}
-\end{table}
-\begin{table}[H]
-    \centering
-    \aboverulesep = 0pt
-    \belowrulesep = 0pt
-    \sisetup{table-number-alignment=center}
-    \begin{tabular}{l|S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]}
-        \toprule
-        {\backslashbox{$r_i$}{$r_j$}} & {$r_0$} & {$r_1$} & {$r_2$} & {$r_3$} & {$r_4$} & {$r_5$} \\
-        \midrule
-        {$r_0$} & 0.0e0  & 5.72e2 & 8.38e2 & 9.90e2 & 6.03e2 & 1.01e2 \\
-        {$r_1$} & 5.72e2 & 0.0e0  & 5.58e2 & 7.35e2 & 3.45e1 & 6.37e2 \\
-        {$r_2$} & 8.38e2 & 5.58e2 & 0.0e0  & 1.80e2 & 5.74e2 & 9.34e2 \\
-        {$r_3$} & 9.90e2 & 7.35e2 & 1.80e2 & 0.0e0  & 7.50e2 & 1.06e3 \\
-        {$r_4$} & 6.03e2 & 3.45e1 & 5.74e2 & 7.50e2 & 0.0e0  & 6.67e2 \\
-        {$r_5$} & 1.00e2 & 6.37e2 & 9.34e2 & 1.06e3 & 6.67e2 & 0.0e0  \\
-        \bottomrule
-    \end{tabular}
-    \caption{PDA variance between each nefarious router pair $r_i$ and $r_j$}
-    \label{tab:Rallvars}
-\end{table}
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}{0.475\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figs/results/grouped_summary_avg.png}
-        \caption[]{Average Packet Delay}
-        \label{fig:MrouterPDA}
-    \end{subfigure}
-    \begin{subfigure}{0.475\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figs/results/grouped_summary_pdv.png}
-        \caption[]{Packet Delay Variation}
-        \label{fig:MrouterPDV}
-    \end{subfigure}
-    \caption{Average non-nefarious and grouped nefarious router packet metrics over a range of time-steps.}
-    \label{fig:Rvarnefrouter}
-\end{figure}
-
-To investigate if these trends of PDA and PDV hold over arbitrary network topologies 30 random graphs were generated with the ER method, subdivided into 3 groups of 10 graphs each with low ($p=0.2$), medium ($p=0.5$), and high ($p=0.85$) levels of connectivity and 30 were generated with the BA method. Plots of PDV results are shown in \cref{fig:Rrandgraphpdv} with the PDV of the nefarious router shown against the max PDV over all other routers.
-
-\begin{figure}[H]
-    \centering
-    \missingfigure{Plot of router PDV from rand. graphs}
-    \caption{Caption}
-    \label{fig:Rrandgraphpdv}
-\end{figure}
-
-\subsubsection{Packet Delay Inference Robustness}
-Once again considering the baseline network in \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
-
-\subsubsection*{Router Queue Buffer Length}
-Using the same procedure as baseline experiments in the previous section we consider only the case of $r_1$ begin nefarious, we measure the impact of hold probabilities on packet delay metrics over varying buffer queue lengths. Firstly considering PDA plots of original values and values with a standard min-max normalisation applied are given in \cref{fig:Rvariedqlenpda}.\par
-From these we see that irrespective of queue length the relation between hold probability and PDA appears to be a sigmoid curve. Using a standard Levenberg–Marquardt method \cite{osborne_nonlinear_1976} we fit a sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results. We selected the Levenberg–Marquardt minimisation algorithm as it performed the best over all fits, both the trust region reflective algorithm and dogleg algorithm with a rectangular trust region were tried but produced inferior $R^2$ values, results for these fits are shown in \cref{Aaltcurvefit}.\par
-The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, accurate enough to confirm the initial prediction. In the non-normalised case the upper bound of each sigmoid is given by approximately the maximum length and a lower bound being approximately 0. In normalising the data we see that an increase in queue length both shifts the inflection point of the sigmoid to the right and reduces the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real world systems, as such we do not consider these in further analysis and leave them to future work.\par
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_lm.png}
-        \caption{Original}
-    \end{subfigure}
-    \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/qlen_fitting/norm_qlen_PDA_lm.png}
-        \caption{Min-max scaled}
-    \end{subfigure}
-    \caption{Plots of average nefarious router buffer queue length over various hold probabilities.}
-    \label{fig:Rvariedqlenpda}
-\end{figure}
-To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in \cref{fig:Rsigmoidcoefs}. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient. Fitting a polynomial model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length. This estimation can allow for the relation to be inverted i.e. given a router's queue length and PDA we can estimate the router's hold probability.
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/qlen_param_c.png}
-        \caption{Gradient at inflection point}
-    \end{subfigure}
-    \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/qlen_param_d.png}
-        \caption{X-value of infection point}
-    \end{subfigure}
-    \caption{Plots of parameters for modeled sigmoid relationship between hold probability and router buffer queue length.}
-    \label{fig:Rsigmoidcoefs}
-\end{figure}
-
-\subsubsection*{Background Traffic Intensity}
-
-\subsection{Real World Networks}
-\label{ssec:nefidrealworld}
-
+\subsection{Classifier One}
+\label{ssec:Ras1}
+Firstly we consider classification with a full delay distribution and baseline comparisons. Confusion matrices for nefarious node classification are shown in \cref{tab:ngercmatrix,tbl:frncecmatrix,tbl:nrwycmatrix}. Each classification was performed using a KS comparison against the true baseline values and a p-val cutoff of 0.0 to provide the strictly possible guarantee of significance.\par
 \noindent
 \begin{table}[H]
     \centering
@@ -194,7 +20,7 @@ To quantify the relationship between queue length and the produced sigmoid we ca
         {Nefarious}     & 1807  & 0     \\
         {Non-nefarious} & 37    & 3018  \\
     \end{tabular}
-    \caption{Confusion matrix for nefarious router prediction within the Nobel-Germany topology using KS true value comparison and a p-val cutoff of 0.}
+    \caption{Confusion matrix for classification under assumption set 1 in the Nobel topology.}
     \label{tab:ngercmatrix}
 \end{table}
 \noindent
@@ -208,9 +34,10 @@ To quantify the relationship between queue length and the produced sigmoid we ca
         {Nefarious}     & 2781  & 101     \\
         {Non-nefarious} & 101    & 2658  \\
     \end{tabular}
-    \caption{Confusion matrix for nefarious router prediction within the France topology using KS true value comparison and a p-val cutoff of 0.}
-    \label{tab:frncecmatrix}
+    \caption{Confusion matrix for classification under assumption set 1 in the Free topology.}
+    \label{tbl:frncecmatrix}
 \end{table}
+\noindent
 \begin{table}[H]
     \centering
     \aboverulesep = 0pt
@@ -221,31 +48,82 @@ To quantify the relationship between queue length and the produced sigmoid we ca
         {Nefarious}     & 1905  & 46     \\
         {Non-nefarious} & 413   & 1896   \\
     \end{tabular}
-    \caption{Confusion matrix for nefarious router prediction within the Norway topology using KS true value comparison and a p-val cutoff of 0.}
-    \label{tab:nrwycmatrix}
+    \caption{Confusion matrix for classification under assumption set 1 in the CPLEX topology.}
+    \label{tbl:nrwycmatrix}
 \end{table}
+Classification in the Nobel topology has a sensitivity of 100\% across all evaluated sets of nefarious routers. With 37 false positives the classifier has a specificity of 99.99\%, giving an extremely precise and accurate nefarious node classification. For the Free and CPLEX topologies we observe marginally worse classification performance. The classifier has a sensitivity of 96.5\% and 97.64\% and a specificity of 96.34\% and 82.11\% for Free and CPLEX respectively. Given the efficacy of classification over all topologies we omit discussion under each scenario, as each would be near perfect, in favour of focusing on the general classification results and trends between topologies.\par
+The most striking result is a sensitivity of 100\% in the Nobel topology, closely followed by the 99.9\% specificity in the same topology. We anticipate the extreme efficacy of this classification is due to the relatively small number of routers within the Nobel topology allowing us to obtain router identifiability using only 28 probe paths. The reduction in classifier performance as the size of the topology increases support this theory.\par
+This trend is likely due to the number of probe paths required to achieve router identifiability in each topology. With fewer probe paths producing a robust average of metrics in each probe path. We would however expect the true sensitivity of the classifier to however be <100\% but the sample size needed to determine this would be prohibitively large.\par
+In all topologies we observe the classifier having a higher sensitivity than specificity. This is likely due to the stochastic routing behaviour of the network routing packets away from nefarious routers which will have larger buffer queues. This would cause non-nefarious routers to receive more packets and subsequently a larger buffer queue appearing nefarious. Nefarious routers however - even when forwarded few packets - will still delay a proportion of these packet. These routers will therefore maintain a larger queue length, enabling their classification from packet delay metrics and minimising false negatives.\par
+
+\subsection{Classifier Two}
+\label{ssec:Ras2}
+Next we consider classification with a baseline comparison and only packet delay summary statics available. ROC curves for classification in each topology are given in \cref{fig:RA2ROCcurves}. Note the performance of the classifier under each case is extrapolated from a corresponding point lying on the ROC curve.\par
+For scenario one router classification in the Nobel, Free, and CPLEX topologies satisfied the sensitivity threshold of 0.9 with a false positive rate of 0.811, 0.838, and 0.919 respectively. Classification in the Nobel and Free topologies is superior to random classification of routers. However, with a sensitivity of > 0.763 the classification accuracy for the CPLEX network is worse than random. This is due to a sympathetic increase between non-nefarious router PDA (over baseline PDA) and nefarious router PDA. The sympathetic increase is caused by the link-state protocol routing packets around nefarious routers as their buffer queue's fill. This results in more packets being forwarded to non-nefarious routers over the baseline simulation, increasing the difference in PDA from the baseline simulation.\par
+For scenario two the classifier reaches the 0.7 sensitivity threshold in the Nobel, Free, and CPLEX topologies with a false positive rate of 0.392, 0.426, and 0.669 respectively. For scenario three the 0.9 specificity threshold is satisfied with a false negative rate of 0.558, 0.682, and 0.864 for each topology respectively.\par
+In both scenario two and three all classifier perform better than a random classification. However for scenario two classification in the CPLEX topology is notably worse than the Nobel and Free topologies, even when accounting for the increased number of routers. We anticipate this is caused by the same factors as in scenario one, likely increased noise in probe path measurements. In general however less stringent sensitivity requirements reduce the impact of noise on classification.\par
+With scenario three's requirements on specificity the reduction in classifier accuracy is proportional to the number of routers in each topology. Additionally across all topologies the classifier performs the best relative to a random classification in sensitivity and specificity ranges of [0.2, 0.76] and [0.24, 0.83] respectively. Classification under assumption case two is therefore better suited to use cases with a higher tolerance for false negatives.\par
+\noindent
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/results/nobel-germany_case2_roc.png}
-        \caption{Assumption set 2.}
+        \caption{Nobel Topology.}
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/results/nobel-germany_case3_roc.png}
-        \caption{Assumption set 3.}
+        \includegraphics[width=\textwidth]{figs/results/france_case2_roc.png}
+        \caption{Free Topology.}
     \end{subfigure}
-    \caption{Receiver operating characteristic of nefarious router classification under differing assumptions sets.}
-    \label{fig:RnovelROCcurves}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/norway_case2_roc.png}
+        \caption{CPLEX Topology.}
+    \end{subfigure}
+    \caption{ROC curves for classification under assumption set 2.}
+    \label{fig:RA2ROCcurves}
 \end{figure}
 
-\section{Optimization Impacts}
-\label{sec:Rprobingoptimality}
-In this section we apply optimization techniques for selection of monitor nodes, probe paths between these nodes and allocation of probing packets over paths. Inference made under optimized conditions are compared and contrasted to original measures to quantify impact of optimizations, computational costs involved in optimization techniques are weighed against changes in accuracy to assess the practicality of implement these improvements in tomographic monitoring schemes. We begin with monitor placement, extending this with further optimizations with the intent of analyzing the cumulative impact of optimising different aspects of the tomographic pipeline along with individual contributions.
-\subsection{Monitor Placement}
-\subsection{Path Selection}
-\subsection{Probe Allocation}
+\subsection{Classifier Three}
+\label{ssec:Ras3}
+\noindent
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/nobel-germany_case3_roc.png}
+        \caption{Nobel Topology.}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/france_case3_roc.png}
+        \caption{Free Topology.}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/norway_case3_roc.png}
+        \caption{CPLEX Topology.}
+    \end{subfigure}
+    \caption{ROC curves for classification under assumption set 3.}
+    \label{fig:RA3ROCcurves}
+\end{figure}
+Finally we use only packet delay summary statics for classification. ROC curves for classification in each topology are given in \cref{fig:RA3ROCcurves}. We evaluate the classifiers performance for each scenario below.\par
+For scenario one classification of the Nobel and CPLEX topologies results in a false positive rate of 0.4 and 0.5 respectively. For the Free topology the classifier is only able to attain a sensitivity of 0.9 with a false negative rate of 1.0 (classify all routers as nefarious). Excluding this case, PDA is not sufficient to classify routers with a sensitivity greater than 0.83 in the Free topology.\par
+This is due to the topology containing a node with a degree of 10 (Paris). The Paris node experiences more than twice as much traffic as the average node of degree 3 and thus has a near or completely full queue buffer regardless of nefarious behaviour. This is compounded by 15 of the 37 probe paths including Paris, resulting in a disproportionate number of probe packets traversing the router. Therefore when using a PDA threshold of buffer queue length $-\epsilon$ for classification the Paris node is always classified as nefarious. A similar limitation exists in the CPLEX topology where due to the same factors where a maximum sensitivity of 0.966 can be achieved.\par
+Conversely, the classifier performs extremely well on the Nobel topology achieving a true positive rate of 1.0 with a false positive rate of 0.544. Although both Nobel and CPLEX have a maximum node degree of 6, in the Nobel network only 12 probe paths traverse the maximally connected router compared to 21 in CPLEX. Therefore in the CPLEX network, unlike the Free network, the maximally connected router's buffer queue receives disproportionately more probe packets. This results in the router being classified as nefarious regardless of its delaying behaviour in the majority of test trials.\par
+For scenario two classification of the Nobel, Free, and CPLEX topologies results in a false positive rate of 0.339, 0.363, and 0.235 respectively. These rates are a strict improvement over classification under assumption case two. This improvement is due to the increased queue length of nefarious routers due to their delaying causing a tendency for traffic to be directed through non-nefarious routers. This increases the queue length of these non-nefarious routers, resulting in more cases of incorrectly classifying a router as nefarious.\par
+For scenario three classification of each topology results in a false negative rate of 0.629 for the Nobel and Free topologies and 0.556 for CPLEX. However, for each case in \cref{fig:RA3ROCcurves} no PDA thresholds enable a classification with a false positive rate < 0.2. This is due to an overlap in PDA values between weakly connected nefarious router and strongly connected non-nefarious routers. The amount of traffic arriving at strongly connected non-nefarious routers fills their buffer queue at a rate similar to a less connected nefarious router. Therefore a PDA threshold sufficient to identify any weakly connected routers also causes false positives.\par
 
-\section{Real Network Performance}
-\label{sec:Rrealnetworkperformance}
+\subsection{Summary of Comparisons}
+\label{ssec:Rnefidsummary}
+In this section we have analysed three nefarious routers classifiers with three real-world use cases for a fair comparison of performance. Classifier one was found to have the best performance in each use case. This classifier achieved a near perfect accuracy across all investigated topologies. However, as this underlying distribution can not be obtained via network tomography we focused our comparison on the second and third classifiers.\par
+Classifier two was found to perform better than a random classification in all cases other than in the CPLEX topology with a sensitivity > 0.763. This was caused by a sympathetic increase between non-nefarious router PDA (over baseline PDA) and nefarious router PDA due to stochastic traffic routing. This classifier performed optimally for specificity requirements between 0.24 and 0.83 across all topologies.\par
+Classifier three achieved greater accuracy than classifier two for sensitivity and specificity requirements of [0.2, 0.83] and [0.46, 0.75] respectively. This was due to absence of baseline comparisons causing sympathetic increases between routers to not impact classification. However, classifier two performed very poorly for sensitivities below 0.2 and above 0.8. This was due to an overlap in PDA metrics between strongly connected non-nefarious and weakly connected nefarious.
+
+\section{Optimisation Impacts}
+\label{sec:Rprobingoptimality}
+In this section we apply optimization techniques for selection of probe paths between monitor nodes and allocation of probe packets between paths. Inference made under optimized conditions are compared and contrasted to original measures to quantify impact of optimizations, computational costs involved in optimization techniques are weighed against changes in accuracy to assess the practicality of implement these improvements in tomographic monitoring schemes.
+
+\subsection{Path Selection}
+\label{ssec:Rpathselection}
+
+
+\subsection{Probe Allocation}
+\label{ssec:Rprobeallocation}
 
 \section{Summary}
