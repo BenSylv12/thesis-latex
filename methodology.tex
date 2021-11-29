@@ -11,7 +11,7 @@ This section details network topology data sets, network traffic data generation
 
 \subsection{Data Sets}
 \label{ssec:Mdatasets}
-Real world topology data sets are from the SNDLib project (\cite{orlowski_sndlib_2007}) and the Internet Topology Zoo project (\cite{knight_internet_2011}). We have selected eight national ISP topologies for analysis, details of these network are shown in \cref{tbl:Mrealnetworkattributes}. These topologies were selected as they have a high connectivity (without being fully connected) and large number of nodes (>15) compared to other typologies within the data set. We believe this combination represents real-world scenarios where network tomography can provide useful results with non-trivial performance improvements over conventional monitoring methods.\par
+Real world topology data sets are from the SNDLib project (\cite{orlowski_sndlib_2007}) and the Internet Topology Zoo project (\cite{knight_internet_2011}). We have selected seven national ISP topologies for analysis, details of these network are shown in \cref{tbl:Mrealnetworkattributes}. These topologies were selected as they have a high connectivity (without being fully connected) and large number of nodes (>15) compared to other typologies within the data set. We believe this combination represents real-world scenarios where network tomography can provide useful results with non-trivial performance improvements over conventional monitoring methods.\par
 A synthetic 7 router network was also used for initial data exploration. A worked example of network tomography using this network and a diagram of the topology is provided in \cref{sec:Mnetworkprobing}.\par
   \begin{table}
     \centering
@@ -22,7 +22,6 @@ A synthetic 7 router network was also used for initial data exploration. A worke
       Name & Region & Year & \# Routers & \# Links & Min & Max & Mean \\
       \midrule
       Nobel & Germany & 2005 & 17 & 26 & 2 & 6 & 3.05\\
-      ACOnet & Austria & 2009 & 23 & 31 & 1 & 8 & 2.7\\
       Free & France & 2005 & 25 & 45 & 2 & 10 & 3.6\\
       CPLEX & Norway & 2005 & 27 & 51 & 2 & 6 & 3.78\\
       Cost266 & Europe & 2005 & 37 & 57 & 2 & 5 & 3.08\\
@@ -54,31 +53,19 @@ As a result of this work python scripts have been produced for the following fun
     \item Parsing network tomography probe paths from and to a custom file format.
     \item Generating a minimal number of CFR restricted probe paths and linear equations to identify router packet delay metrics.
     \item Computing an allocation of probe packets over a set of probe paths to maximise information gain from network tomography.
+    \item Optimising set of probe paths selected and allocation of packets over those paths.
     \item Classifying nefarious routers under three different sets of assumptions on networking performance logging.
 \end{itemize}
 Jupyter notebooks were used for initial topology and traffic data exploration as well as visualisation of results. Python scripts were developed using Matplotlib (\cite{hunter_matplotlib_2007}) to produce confusion matrices and receiver operating characteristic plots for evaluation of our classifiers.
 
 \section{Inferring Packet Delay Metrics}
 \label{sec:Mnetworkprobing}
-In this section we introduce how we have applied additive network tomography to our problem setting.
-\begin{mdframed}
-\textbf{NOTATION FOR PDV SECTION FORMALIZATION}:\\
-Probe path probabilities: Each probe packet is sent along a probe path $p$ with a probability of $\phi_p$, given there are multiple paths within any non-trivial model we represent them all as $\vec{\phi}=\forall p\in P^*, \phi_p$ where $|\vec{\phi}|=|P^*|$, $\phi_p \geq 0$ and $\sum_{p\in P^*}\phi_p = 1$
-
-The parameter vector $\vec{\theta}$ is the vector of length $|R|$ containing the parameter governing each $q\in Q$ where $ q_x \sim \theta_x$ or more formally $\vec{\theta}=\forall r\in R, \theta_r$.
-
-The vector $\vec{\psi}$ is the vector containing all proper path allocations/injection probabilities where $\psi_x$ is the allocation of probes to $p_x\in P^*$ 
-
-Let $f_{Q|\vec{\theta}}(q)$ represent the probability of observing the value $q$ from monitor-to-monitor probe path $p\in P^*$ given the node parameter $\theta_x$ governing $Q_x$.
-
-Note that we can represent a tomographic problem as a system of $P^*f'(\theta)=\mathcal{M}$ where $f'$ is a one-to-one correspondence function of $\theta$ and $\mathcal{M}$ is a matrix of monitor-to-monitor metrics we collect from our probing where $\mathcal{M}_p = (q_1,q_2,\ldots, q_n)$. For ease of notation let $|\mathcal{M}_p|$ be the number of metrics ($n$) we collect over path $p$. Note that for aggregation of measurements after collection $\forall p\in P^*, \forall r\in p, \mathcal{M}=\sum_{r\in p}\theta_r$.
-\end{mdframed}
-Using Ma's monitor placement algorithm a minimum sufficient subset of routers are designated as monitors. Probe paths between these monitors are then calculated using the spanning tree based construction method from \cite{he_network_2021}. Each probe path is converted to two directed probe paths to allow both monitors on the path to send packets along it. Each directed path is assigned a unique id which is included in the tag field of all probe packets sent along that path. At simulation start probe paths are broadcast from monitors to all routers. Routers store the subsequent router from them on the path as the forwarding destination for any probe packets they receive.\par
-The total number of probe packets sent my monitors during analysis can be varied within our simulation tool. We refer to this number of probe packets sent as \textit{probing intensity}. At the end of the simulation the timestep each packet was sent from and received by a monitor is aggregated to give a distribution of packet transmission delays along that path. The average of this distribution is then computed using numpy's vector operation and stored as the path PDA. Path PDA's are then substituted to each router identifiability equation to compute the router level PDA.\par
-To validate the accuracy of tomographic probing in a nefarious settings a test was performed on  the seven router network in \cref{fig:M7routersample}. For validation of accuracy the average of 50 simulations with a random set of nefarious routers in each was taken over a range of probing intensities. The average difference between inferred PDA and the true PDA over probing intensities is presented in 
-\begin{figure}
+In this section we present our application of additive network tomography to the problem setting and motivations behind design decisions for our classifier. We introduce the implementation of probe paths and routing of probe packets. An exploratory analysis of a seven router network is conducted to give insight into the accuracy of network tomography and its dependence on the number of probe packets sent. In \cref{ssec:Mmetricnormalisation} we use this seven router network to empirically determine appropriate post-processing methods for packet delay results.\par
+When the topology is parsed into iGraph a minimum subset of routers sufficient for router identifiability are designated as monitors using Ma's monitor placement algorithm. Probe paths between these monitors are then calculated using the spanning tree based construction method from \cite{he_network_2021}.\par
+Each probe path is converted to two directed probe paths to allow both monitors on the path to send packets along it. Each directed path is assigned a unique id which is included in the tag field of all probe packets sent along that path. At simulation start probe paths are broadcast from monitors to all routers. Routers store the subsequent router from them on the path as the forwarding destination for any probe packets they receive.\par
+\begin{figure}[H]
     \centering
-    \tikzsetnextfilename{7routertopology_methodology}
+    \tikzsetnextfilename{6routertopology_methodology}
     \begin{tikzpicture}[
         router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
         nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
@@ -122,31 +109,132 @@ To validate the accuracy of tomographic probing in a nefarious settings a test w
         \draw[-] (s50.west) -- (r5.east);
         \draw[-] (s51.west) -- (r5.east);
     \end{tikzpicture}
-    \caption{6 router network with 2 monitors located at $r_0$ and $r_5$ (Reprinted from \pageref{fig:6routersample})}
-    \label{fig:M7routersample}
+    \caption{6 router network with 2 monitors located at $r_0$ and $r_5$ (Reprinted from page \pageref{fig:6routersample})}
+    \label{fig:M6routersample}
 \end{figure}\par
-
-\section{Tomographic Inference}
+The total number of probe packets sent from monitors during analysis can be varied within our simulation tool. We refer to this number of probe packets sent as \textit{probing intensity}. At the end of the simulation the timestep each packet was sent from and received by a monitor is aggregated to give a distribution of packet transmission delays along that path.\par
+To validate the accuracy of tomographic probing in a nefarious settings we consider the six router network in \cref{fig:M6routersample}. The average of 50 simulations, each with a random set of nefarious routers, was taken over a range of probing intensities. The difference between inferred and true PDA was then averaged over all routers and results are presented in \cref{fig:MPDAvarprobing}. We note that a 2-sample Kolmogorov Smirnov test determined no significant difference in accuracy of PDA inference between nefarious and non-nefarious routers. For justification behind our use of the packet delay average see \cref{ssec:MPDMseclection}.
 \begin{figure}[H]
-        \centering
-        \includegraphics[width=\textwidth]{figs/results/Probe_PDV_accuracy_plot.png}
-        \caption{Accuracy of inference from true values over a range of probes sent.}
-        \label{fig:Rqstabilization}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figs/results/Probe_PDV_accuracy_plot.png}
+    \caption{Accuracy of inference from true values over a range of probes sent.}
+    \label{fig:MPDAvarprobing}
 \end{figure}
 
-% probe path calculation
-% inference accuracy test description
+\subsection{Metric Normalisation}
+\label{ssec:Mmetricnormalisation}
+The packet delay delay distribution at a single router is intuitively a combination of the two contributors to it's buffer queue length:
+\begin{enumerate}
+    \item The \# of packets received each timestep.
+    \item The \# of packets sent each timestep.
+\end{enumerate}
+For non-nefarious routers contributor \emph{2} is always a fixed rate of one packet per time step. If the router is nefarious this rate is $<1$ proportional to the router's hold probability. As the rate of sending is not impacted by contributor \emph{1} we hypothesise that accounting for variation of contributor \emph{1} between routers will enable more accurate inference of contributor \emph{2} and subsequently nefarious behaviour.\par
+As \textit{traffic intensity} is constant across the network, contributor \emph{1} is proportional to the degree of each node. This is as the number of packets being received by a router each time step is the sum of packets received from each link. We use $\sqrt{\gls{routerdeg}}$ for normalisation over delay observations by taking $\forall r\in R, \frac{\sigma^2}{\sqrt{\gls{routerdeg}}}$ where $\sigma^2$ is the variance of delay measurements.
+\todo{Show results for inferential accuracy RE probing a network where nefarious router has << switches than a non-nef, to demonstrates why we want to normalise for the number of links. }
+
+\section{Packet Delay Metric Inference Validity}
+\label{sec:MPDMinferencevalid}
+To determine the validity of our core hypothesis that packet delay metrics enable classification of routers probabilistically delaying packets we again consider the six router network from \cref{fig:M6routersample}. To observe the impact of nefarious behaviour on packet delay six experiments were conducted with each router $r_0,\dots, r_5$ designed as nefarious in each experiment respectively.Each experiment consisted of 50 trials over range of holding probabilities for the nefarious router between 0 and 1, in each trial average packet delay statistics from 50 simulations were collected from each router every timestep post queue stabilization. Plots of router packet delay average (PDA) and variation (PDV) are shown in \cref{fig:Rvarnefrouter}.\par
+Initially all nefarious router packet delay metrics were grouped together in the analysis but as shown in \cref{tbl:MrouterPDAvars} large variances in PDA, and consequently PDV, were observed in delay probabilities 0.2 - 0.5. Closer investigation revealed that this discrepancy of variances was between 3 groups of routers: $\{r_0,\ r_5\}$, $\{r_1,\ r_4\}$, and $\{r_2,\ r_3\}$ this grouping is validated by the table of variances in \cref{tab:Rallvars}.\par
+From this we find that the intra-group variance is 100.60, 34.46, and 179.92 for each groups respectively however they have an average inter-group variance of 862.99. Each group has a common feature, that its comprising routers are indistinguishable via their values in the adjacency matrix. Using these grouping its clear that the nefarious router's PDA differs significantly from all other routers in the network, with a hold probability of 0.5 resulting in a router PDA $\approx$3232 times larger than that of the 2nd largest PDA.\par
+Of interest is the behaviour of $r_0$ and $r_5$ when nefarious as although these routers connect to half as many routers as the others their nefarious behaviour can still be inferred through PDA. This relationship enforces our conclusion that PDA metrics allow for nefarious router identification. We note no routers in topologies from the SDNlib nor Internet Topology Zoo database routers are indistinguishable via their values in the adjacency matrix. We therefore do not consider the impact of this nefarious router PDA grouping in our analysis.\par
+As expected when the nefarious router has a hold probability of 0 it PDV mimics that of a non-nefarious router. When the nefarious router has a very high hold probability $\gtrapprox 0.7$ we see again the PDV regress to that of the rest of the network corroborating analysis in \cref{ssec:MPDMseclection}.\par
+We anticipate this behaviour is due to the use of variance as a metric, if a router is delaying all packets traversing it then its queue length will be consistently large or the queue will be completely full, varying little. If this hypothesis is true it follows that although the PDV decreases significantly over a nefarious holding probability of 0.7 the PDA would continue to increase. PDA measurements from the same experimental trials in \ref{fig:MrouterPDA} show a clear monotonic increase between PDA and holding probability, conforming to our expectations.
+
+\sisetup{retain-zero-exponent}
+\begin{table}[H]
+ \centering
+  \begin{tabular}{@{}cS[table-format=1.2e1]@{}}
+   \toprule
+    \textbf{Hold Probability} & \textbf{Nefarious router} \\
+    \textbf{Range} & \textbf{PDA variance} \\
+   \midrule
+    {[}0.0, 0.1{)} & 3.03e-01  \\
+    {[}0.1, 0.2{)} & 8.89e+00  \\
+    {[}0.2, 0.3{)} & 1.49e+03  \\
+    {[}0.3, 0.4{)} & 9.78e+06  \\
+    {[}0.4, 0.5{)} & 8.54e+06  \\
+    {[}0.5, 0.6{)} & 6.77e+05  \\
+    {[}0.6, 0.7{)} & 1.03e+06  \\
+    {[}0.7, 0.8{)} & 2.84e-01  \\
+    {[}0.8, 0.9{)} & 3.13e-02  \\
+    {[}0.9, 1,0{)} & 3.10e-03  \\
+   \bottomrule
+  \end{tabular}
+  \caption{Variance of nefarious router PDA grouped by varying delay probabilities in the baseline 6 router network.}
+    \label{tbl:MrouterPDAvars}
+\end{table}
+\begin{table}[H]
+    \centering
+    \aboverulesep = 0pt
+    \belowrulesep = 0pt
+    \sisetup{table-number-alignment=center}
+    \begin{tabular}{l|S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]S[table-format=1.2e1]}
+        \toprule
+        {\backslashbox{$r_i$}{$r_j$}} & {$r_0$} & {$r_1$} & {$r_2$} & {$r_3$} & {$r_4$} & {$r_5$} \\
+        \midrule
+        {$r_0$} & 0.0e0  & 5.72e2 & 8.38e2 & 9.90e2 & 6.03e2 & 1.01e2 \\
+        {$r_1$} & 5.72e2 & 0.0e0  & 5.58e2 & 7.35e2 & 3.45e1 & 6.37e2 \\
+        {$r_2$} & 8.38e2 & 5.58e2 & 0.0e0  & 1.80e2 & 5.74e2 & 9.34e2 \\
+        {$r_3$} & 9.90e2 & 7.35e2 & 1.80e2 & 0.0e0  & 7.50e2 & 1.06e3 \\
+        {$r_4$} & 6.03e2 & 3.45e1 & 5.74e2 & 7.50e2 & 0.0e0  & 6.67e2 \\
+        {$r_5$} & 1.00e2 & 6.37e2 & 9.34e2 & 1.06e3 & 6.67e2 & 0.0e0  \\
+        \bottomrule
+    \end{tabular}
+    \caption{PDA variance between each nefarious router pair $r_i$ and $r_j$}
+    \label{tab:Rallvars}
+\end{table}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/results/grouped_summary_avg.png}
+        \caption[]{Average Packet Delay}
+        \label{fig:MrouterPDA}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/results/grouped_summary_pdv.png}
+        \caption[]{Packet Delay Variation}
+        \label{fig:MrouterPDV}
+    \end{subfigure}
+    \caption{Average non-nefarious and grouped nefarious router packet metrics over a range of time-steps.}
+    \label{fig:Rvarnefrouter}
+\end{figure}
 
 
 \section{Identifying Nefarious Behaviour}
 \label{sec:MNefidentification}
-  In our problem setting nefarious behaviour is characterized by a router probabilistically \textit{delaying} packets by not forwarding them during a timestep. As noted in previous chapters we refer to a router's probability of delaying a packet during a timestep as its \textit{hold probability}. To classify a router as behaving nefariously we require a metric that is impacted by this nefarious behaviour and identifiable using network tomography. We postulate that packet delay, serving as a proxy for router buffer queue length, is an appropriate metric. We therefore hypothesise that a router can be classified as exhibiting nefarious behaviour using information gained from packet delay metrics.\par
-  This section is divided into three sub-sections, the first two address how we classify nefariously behaving routers and the third how we compare these classifications. \cref{ssec:MTruevalues} covers approaches to classification using the true buffer queue length measurements from routers at simulation time. This is to test our underlying assumption that a routers buffer queue length is influenced by its hold probability. In \cref{ssec:MInferredvalues} we instead use packet delay averages from network tomography to classify routers as nefarious. Following this we present our approach to comparing the classifications using both inferred and true data sets under each case of assumptions.
+  In our problem setting nefarious behaviour is characterized by a router probabilistically \textit{delaying} packets by not forwarding them during a timestep. As noted in previous chapters we refer to a router's probability of delaying a packet during a timestep as its \textit{hold probability}. To classify a router as behaving nefariously we require a metric that is impacted by this nefarious behaviour and identifiable using network tomography. In that packet delay, serving as a proxy for router buffer queue length, is an appropriate metric. We therefore hypothesise that a router can be classified as exhibiting nefarious behaviour using information gained from packet delay metrics.\par
+  This section is divided into four sub-sections, the first address a design choice to use the PDA metric and the following three describe the methodology used in evaluating our nefarious router classifier. Subsection two and three specifically address how we classify nefariously behaving routers and subsection four how we compare these classifications. \cref{ssec:MTruevalues} covers approaches to classification using the true buffer queue length measurements from routers at simulation time. This is to test our underlying assumption that a routers buffer queue length is influenced by its hold probability. In \cref{ssec:MInferredvalues} we instead use packet delay averages from network tomography to classify routers as nefarious. Following this we present our approach to comparing the classifications using both inferred and true data sets under each case of assumptions.
   
-  \subsection{Classification with True Values}
+  \subsection{Packet Delay Metric Selection}
+  \label{ssec:MPDMseclection}
+  Using path level packet delay distribution we compute path PDA and PDV with numpy (\cite{harris_array_2020}) vector operations. These metrics are substituted to each router identifiability equation to compute router level metrics.\par
+  To determine whether use of PDA, PDV enable the most accurate inference of true router level metrics we consider the six router network in \cref{fig:M6routersample}. We note that a combination of these metrics may enable more accurate inference of hold probability but leave this to future work.\par
+  As router queue buffer's contain a history of packets sent to it the length of the queue buffer determines how much packet information a router can hold. To account for this variable information in our analysis we take an average of router level PDA and PDV against hold probability from 50 simulations over a range of queue buffer lengths, results are shown in \cref{fig:RvariedqlenPDM}. Note that a router with a hold probability of 0.0 is analogous to a non-nefarious router.\par
+  \begin{figure}
+      \centering
+      \begin{subfigure}{0.475\textwidth}
+          \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_lm.png}
+          \caption{Packet Delay Average}
+      \end{subfigure}
+      \begin{subfigure}{0.475\textwidth}
+          \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDV_lm.png}
+          \caption{Packet Delay Variation}
+      \end{subfigure}
+      \caption{Plots of router level PDA and PDV over various hold probabilities.}
+      \label{fig:RvariedqlenPDM}
+  \end{figure}
+  From this we see that router level PDA and hold probability exhibit a monotonically increasing relationship. In comparison PDV for router queue lengths less than 5,000 reaches a maximum  after which it regresses back to 0. The hold probability which results in this maximum PDV is related to the router buffer queue length, with larger queue lengths causing the maximum PDV to occur at a greater hold probability. Both PDA and PDV values before this maximum follow a similar trend however for large hold probabilities PDA is far greater than PDV.\par
+  This reduction in PDV for large hold probabilities is likely due to the router's buffer queue reaching saturation. Once full the queue length varies very little as even with stochastic routing the router will receive a small amount of packets. These packets are likely from either a connected switch or routers calculating a route contain the device has a shorter expected queuing delay than a longer route.\par
+  As routers with very large hold probabilities have a higher chance of being nefarious their identification by any produced classifier is imperative. Due to this we have opted to use PDA metrics for our classifier of nefarious nodes.\par
+  Additionally producing a function to fit the data points in this analysis a parametric relationship between router PDV and hold probability was identified. From our use of various buffer queue lengths a further relationship between buffer queue length and parameters of the optimally fitting function was observed. This spurred an investigation into the possibility of using this relationship to directly compute router hold probability using PDA and network parameters (\textit{i.e. buffer queue length, traffic intensity etc.}). We present this analysis in Appendix B and highlight this as an extremely promising avenue for further study.
+
+  \subsection{Nefarious Node Classification}
   \label{ssec:MTruevalues}
-  In testing our sub-hypothesis we firstly use ground true values of router queue buffer lengths from the simulation. These ground truth values emulate theoretical perfectly accurate results from network tomography. Three approaches to identifying nefarious routers with different additional assumptions are considered. Each additional assumption increases the amount of information available for router classification. The additional assumptions for each approach are:
-  \begin{description}
+  In testing our sub-hypothesis of identifying nefarious routers we consider three cases of assumptions. Each subsequent assumption case reduces the amount of information available for router classification. The additional assumptions for each approach are:
+  \begin{description}[labelindent=1cm]
       \item[Case 1:] Known router packet delay metrics with no nefarious routers (\textit{baseline metrics}) and complete distribution of router buffer queue length at each timestep.
       \item[Case 2:] Only known router packet delay metrics with no nefarious routers (\textit{baseline metrics}).
       \item[Case 3:] No additional assumptions.
@@ -165,21 +253,17 @@ To validate the accuracy of tomographic probing in a nefarious settings a test w
   
   In the most restrictive scenario of case 3 we have access to neither the underlying router buffer queue distribution nor a baseline of non-nefarious metrics. Therefore to classify a router as nefarious we are required to determine its hold probability from packet delay metrics alone. This is a non-trivial task which we address in depth in \cref{ssec:pdatoholdprob}.\par
   
-  % This section could go???
-  \subsection{Estimating Hold Probability from Packet Delay Metrics}
-  \label{ssec:pdatoholdprob}
-  To establish a relationship between router packet delay metrics and hold probability we  consider 100 randomly generated topologies between 10-50 nodes, 50 generated using BA and 50 using ER. Randomly generated topologies are used in-place of the limited number real world topologies to ensure results are robust. We assume that there is an underlying parameterised relationship between a routers hold probability and buffer queue length. With the relationship being parameterised over the two variable network parameters: max buffer queue length and background traffic intensity.\par
-  To determine this relationship we simulate each topology with a combinations of max queue length from  200-5,000 and background traffic intensity from 0.1-0.5, each for 10,000 time steps. For each combination of parameters the hold probability of a randomly selected nefarious router is varied from 0.1-0.9. The PDA of the router is recorded along with the corresponding hold probability. Results are then graphed using a scatter plot to visually approximate and display the relationship between these router attributes. For implementation details see \cite{sylvester_millar_real_2021}.\par
-  To map an arbitrary hold value to a measured PDA or vice-versa we fit a function to these discrete observed data points. The data is fitted using the curve\_fit function of SciPy's optimize class which we provide an initial guess of parameters. We tested multiple possible function to fit the data but a standard sigmoid function was found to fit best, matching initial visual analysis of the distribution. We provided the curve function with a minimum value of 0 and a maximum of the maximum queue length. The Levenberg–Marquardt minimisation algorithm was used for fitting as it was found to be the best performing of algorithms within SciPy's library. For transparency we present results for curve fitting using Trust Region Reflective and Rectangular Trust Region Dogleg minimisation algorithms in Appendix D.\par
-  We record the estimated curve fitting parameters from SciPy's curve fitting, noting the minimum and maximum values are approximately the supplied initial guesses. Finally, variation of the functions parameters w.r.t max queue length and background traffic intensity were modeled. This enabled estimation of the PDA to hold probability relation given only network parameters.\par
-  Inverting the observed empirical PDA from varying hold probabilities we are able to estimate hold probability from PDA alone. Using this estimation of hold probability we select a hold probability between 0.0-1.0 as a threshold for a router being classified as nefarious. We then generate a ROC curve to evaluate the efficacy of our classification in the most general context possible. We do not present a confusion matrix  as requirements governing tolerated number of false negatives and false positive will vary between systems.\par
- 
-  
   \subsection{Classification with Inferred Values}
   \label{ssec:MInferredvalues}
   We combine methods from \cref{sec:Mnetworkprobing} and \cref{sec:MNefidentification} to evaluate our overarching hypothesis that network tomography can be used to identify nefarious routers. This is analogous to cases 2 and 3 from \cref{ssec:MTruevalues}, where summary statistics of router queue lengths are used to classify routers as nefarious. Case 1 is not applicable as the use of an underlying true distribution of router buffer queue lengths can not be obtained with tomography. We cover our method for testing the efficacy of PDA inferred through network tomography as a metric used in identifying nefarious routers firstly under assumption case 2 then 3.\par
   In assumption case 2 where the baseline PDA of each router is known we use the same methods as in \cref{ssec:MTruevalues} to assess if the router is nefarious. From network tomography we have the PDA at each router, analogous to the router's buffer queue length. We then compute the difference between the PDA of the baseline simulation and the simulation with unknown nefarious routers for each router in the network. We use a standard deviation test (\cref{eq:stddev}) to identify routers with a difference between the two simulations larger than a user defined threshold. In assumption case 3 with no baseline metrics to compare against we use solely router level PDA to classify nefarious routers.\par
-  For comparison of classifiers under each case of assumptions we consider both a graphic and a numeric presentation of their performance. To evaluate the relative general performance of each method we qualitatively compare the ROC curves produced by each classifier. For a more rigorous quantitative comparison we consider three scenarios covering the spectrum of sensitivity and specificity requirements. Scenario one requires a false negative rate of <2\% and represents a government network with a large budget where compromised routers present a massive risk. Scenario two requires a minimal false positive rate while achieving a false negative rate <25\% and represents a budget restricted cloud provider with quality of service obligations they wish to meet at minimal cost. Scenario three requires a false positive rate of <5\% and represents an organisation monitors a network of honeypot servers intended to be compromised who wants to avoid manual analysis of non-compromised machines.
+  For comparison of classifiers under each case of assumptions we consider both a graphic and a numeric presentation of their performance. To evaluate the relative general performance of each method we qualitatively compare the ROC curves produced by each classifier. For a direct quantitative comparison we consider three scenarios representing classifier use cases covering the spectrum of sensitivity and specificity requirements: 
+    \begin{description}[labelindent=1cm]
+      \item[Scenario 1:] A false negative rate of < 10\% (sensitivity of 0.9)
+      \item[Scenario 2:] A false negative rate < 30\%  (sensitivity of 0.7)
+      \item[Scenario 3:] A false positive rate of < 10\% (specificity of 0.1)
+  \end{description}
+  Scenario one represents a government network with a large budget and a low tolerance for unidentified compromised routers. Scenario two represents a budget restricted cloud provider with quality of service obligations they wish to meet at a minimal false positive rate to minimise costs. Scenario three represents an organisation monitoring a network of honeypot servers which wishes to avoid costly manual analysis of non-compromised machines.
 
 \section{Optimising Inferential Accuracy}
 \label{sec:Moptprobing}
@@ -198,8 +282,6 @@ To validate the accuracy of tomographic probing in a nefarious settings a test w
     \end{tikzpicture}
     \caption{The Tomographic Pipeline.}
 \end{figure}
-
-\subsection{The Tomographic Pipeline}
 
 \subsection{Parsimonious Probe Path Selection}
 \label{ssec:Mpppselection}
