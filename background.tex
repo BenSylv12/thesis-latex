@@ -1,54 +1,56 @@
 \chapter{Background}
 \label{cha:background}
 
-In this chapter we aim to provide the reader with a concrete understanding of key concepts within our new tomographic technique. Descriptions of metrics and methods used to analyse and verify the technique are also introduced. We begin with the theory and intuition behind previously used random network generation algorithms in \cref{sec:Bgraphgeneration}.\par
+In this chapter we aim to provide the reader with a concrete understanding of key concepts in network tomography. We also introduce metrics and methods to analyse and verify network tomography. We begin with the theory and intuition behind previously used random network generation algorithms in \cref{sec:Bgraphgeneration}.\par
 We establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints in \cref{sec:Broutingmechanisms}. Routing is separated into four classes according to these restraints and a focus on the \cbr and \cfr mechanisms for subsequent sections is established.\par
-We then cover key statistical concepts, summarising their realisation within our work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization}. Lastly we tie all aforementioned concepts together through their use within our novel tomographic model and explore previous implementations of \pdv tomography within the network tomographic corpus in \cref{sec:Mnetworkprobing}.
+We then cover key statistical concepts, describing how they are used in this work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization}. Lastly we tie all aforementioned concepts together through their use in our novel tomographic model and explore previous implementations of network tomography algorithms in \cref{sec:Mnetworkprobing}.
 
 \section{Graph Generation}
 \label{sec:Bgraphgeneration}
 
-Monitors in the case of this model function as normal switches with regards to packet generation and reception but perform additional recording functionality. Each monitor stores information pertaining to each packet which is generated or received by itself. This stored information is analogous to a traceroute of the packet's path through the network; a list of routers that the packet has passed through. The monitors also store the total time taken by the packet for it’s traversal, as well as the source and destination IP.\par
-Within the graph resulting from the network generation, all edges are undirected and represent links between machines (router, switches or monitors). For simplicity each distinct pair of nodes may only be linked by a single edge, however multiple physical links between a pair of machines occur in the real world, the edge can be considered a virtual aggregation of all of these links, representing their total cumulative throughput. Each node within the graph is a representation of a physical piece of networking hardware, either a router or switch, these are simplified abstractions of their real world analogous, with their key simplifications being those enumerated in the previous section.\par
-The current network generation strategy follows that of the Erdős–Rényi (ER) model; this was introduced by \cite{gilbert_random_1961} and later that year revisited in “On Random Graphs I.” by the model’s titular author pair \cite{erdos_random_1959}. This random graph generation is characterised by each node in a graph being connected to each other node with a predefined probability of $p$, that is for a graph \gls{network} with $n>1$ nodes and a connectivity probability $0\leq p\leq 1$, $G=f(n,p)$.\par
-This random graph generation strategy is intuitive in its simplicity however has several problems when used to generate graphs analogous to computer networks. The most prominent shortcomings are in the node degree distribution and presence of so called ‘isolated nodes’. A key underlying assumption of the ER model is that each edge between two nodes is equally likely to occur within a graph. The natural consequence of this assumption is that the distribution of node degree’s (number of connected edges) within the graph approximates a Poisson distribution (\cite{albert-laszlo_scale-free_2003}). Such random networks are referred to as exponential networks as the probability that a node is connected to $n$ other nodes decreases exponentially as $n\to\infty$.\par
-Complex networks however have not been observed to follow a random pattern but rather that, irrelevant of age, function or scope converge to a similar architecture as shown in \cite{albert_diameter_1999}’s mapping of the world wide web . This network architecture has been dubbed as scale-free and is characterised by the distribution of node degree following a power-law where the probability of a node having $k$ edges $P(k)$  is proportional to $\frac{1}{kn}$ for a network of $n$ nodes. This property is present in graphs generated using the Barabási–Albert (BA) model, as well as the Watts–Strogatz model; these generation techniques among others are further discussed in \cref{cha:background}.\par
-As the network being generated and analyzed continues to increase in size we expect its behaviour and structure to become increasingly complex. Given this complex nature the scale-free property of graph generation is highly desirable for generation of pseudo realistic networks.
+Monitors in the case of this model function as normal switches with regards to packet generation and reception but perform additional recording functionality. Each monitor stores information pertaining to each packet that it generates or receives. This stored information is analogous to a traceroute of the packet's path through the network; a list of routers that the packet has passed through. The monitors also store the total time taken by the packet for it’s traversal and the source and destination IP address.\par
+In the generated graph is undirected and all edges represent links between machines (router, switches or monitors). For simplicity each distinct pair of nodes is only by linked by a single edge. However, multiple physical links between a pair of machines occur in the real world. The single edge we use is a virtual aggregation of all of these links, representing their total cumulative throughput. \par
+Each node within the graph is a representation of a physical piece of networking hardware, either a router or switch. These are simplified abstractions of their real world analogies. The simplifications used are enumerated in the previous section.\par
+The current network generation strategy follows that of the Erdős–Rényi (ER) model; this was introduced by \cite{gilbert_random_1961} and later that year revisited in “On Random Graphs I.” by the model’s eponymous author pair \cite{erdos_random_1959}. This random graph generation is characterised by each node in a graph being connected to each other node with a predefined probability of $p$, that is for a graph \gls{network} with $n>1$ nodes and a connectivity probability $0\leq p\leq 1$, $G=f(n,p)$.\par
+This random graph generation strategy is simple. It has several problems, however, when used to generate graphs analogous to computer networks. The most prominent shortcomings are in the node degree distribution and presence of so called ‘isolated nodes’. A key underlying assumption of the ER model is that each edge between two nodes is equally likely to occur within a graph. The natural consequence of this assumption is that the distribution of node degree’s (number of connected edges) within the graph approximates a Poisson distribution (\cite{albert-laszlo_scale-free_2003}). Such random networks are referred to as exponential networks as the probability that a node is connected to $n$ other nodes decreases exponentially as $n\to\infty$.\par
+Complex networks however have been observed to not follow properties of exponential networks . Rather, irrelevant of age, function or scope complex network converge to a similar architecture as shown in \cite{albert_diameter_1999}’s mapping of the world wide web . This network architecture has been dubbed as scale-free and is characterised by the distribution of node degree following a power-law where the probability of a node having $k$ edges $P(k)$  is proportional to $\frac{1}{kn}$ for a network of $n$ nodes. This property is present in graphs generated using the Barabási–Albert (BA) model, as well as the Watts–Strogatz model; these generation techniques among others are further discussed in \cref{cha:background}.\par
+As the network being generated and analyzed continues to increase in size we expect its behaviour and structure to become increasingly complex. Given this complex nature the scale-free property of graph generation is highly desirable for generation of pseudo-realistic networks.
 
 \section{Routing Mechanisms}
 \label{sec:Broutingmechanisms}
 
-    In this work we use the term probe packets to denote UDP packets sent between monitors which differ from other traffic by their transfer from and to uniquely identifiable ports on the sending and receiving switch. Probe packets are allocated on a per packet basis to a unique path through the network (referred to as a probe path) which is a directed path through a series of routers which the packet is guaranteed to take by the routing protocols unless it is dropped due to a router buffer within the path being full. Each probe path in the set of selected probe paths (denoted as $P$) is uniquely identified by the monitors it is between and the set of routers it traverses. The probe path a packet is taking is noted though the packet's respective transmission/reception port and additional explicit notation within the data section of the packet, we further elaborate on the technical representation of these probe paths in \cref{sec:Mnetworkprobing}.\par
+    In this work we use the term probe packets to denote UDP packets sent between monitors. Probe packets differ from other traffic as they are transferred from and to unique ports on the sending and receiving switch. Each individual probe packet is sent along a pre-computed \emph{probe path} through the network. A probe path is a directed path through a series of routers which, unless dropped due to a router's buffer being full, the packet is guaranteed to take by underlying routing protocols. Each probe path is uniquely identified by the monitors and routers that it traverses. The probe path for a given packet is described by the packet's respective transmission/reception port. Additionally, explicit notation in the data section of the packet denotes it's probe path. We elaborate further on the technical representation of probe paths in \cref{sec:Mnetworkprobing}.\par
     
-    Given we assume a priori knowledge of the network's topology a set of probe paths is decided on before beginning to collect end-to-end measurements. At the beginning of the measurement interval each monitor sends an allocated number of probe packets along each probe path, noting the time sent ($t^s$) and along which probe path. The destination monitor upon reception of the packet then also stores the time of reception ($t^r$) and packet's probe path, as illustrated in \ref{fig:pptransmission}. 
+    Because we assume a priori knowledge of the network's topology, the set of probe paths is determined before beginning to collect end-to-end measurements. At the beginning of the measurement interval each monitor sends an allocated number of probe packets along each probe path. For each packet a monitor sends it stores the time ($t^s$) and probe path the packet was sent along. Upon reception of the packet, the destination monitor records the time of reception ($t^r$) and packet's probe path, as illustrated in \ref{fig:pptransmission}. 
     \begin{figure}[H]
         \centering
         \includegraphics[width=5cm]{figs/background/probe_transmission.png}
         \caption[Illustration of probe packet transmission between two monitors]{Illustration of probe packet transmission between two monitors \protect\cite{he_fisher_2015}}
         \label{fig:pptransmission}
     \end{figure}
-    \noindent Given $n$ probes are sent on a path we are then able to find the mean end-to-end travel time of a packet on that path by: \[\text{travel time}=\frac{\sum_{i=1}^nt_i^r - t_i^s}{n}\] where $t_n^s$, $t_n^r$ denote the time the $x$th packet sent on that path is sent and received respectively. This calculation is trivial within small networks as there exist only a small number of probe paths and the measurement interval (and therefore $n$) required for reliable metrics is brief. To account for clock synchronization discrepancies between distributed monitors in this calculation we introduce the concept of packet delay variation (PDV) tomography for analysis in \cref{sec:Mnetworkprobing} \par
+    \noindent Given $n$ probes are sent on a path we are then able to find the mean end-to-end travel time of a packet on that path by: \[\text{travel time}=\frac{\sum_{i=1}^nt_i^r - t_i^s}{n}\] where $t_i^s$, $t_i^r$ denote the time the $i$th packet on that path is sent and received respectively. This calculation is trivial within small networks as there exist only a small number of probe paths and the measurement interval (and therefore $n$) required for reliable metrics is brief. To account for clock synchronization discrepancies between distributed monitors in this calculation we introduce the concept of packet delay variation (PDV) tomography for analysis in \cref{sec:Mnetworkprobing} \par
 
-    Let \gls{monitors} denote the set of monitors within \gls{network}, \gls{ppaths} denote the set of all possible probe paths, and $\gls{|}P|$ be the number of potential probe paths  is then intuitively equal to all possible non cyclic paths between each pair of monitors. A naive approach of calculating all probe paths is therefore of the order $\mathcal{O}(m^m)$ where $m=\gls{|}\gls{monitors}|$. As the network grows in size this super-exponential growth of possible probe paths requires a more discerning approach to probe path selection. As the ultimate goal of our end-to-end probing is to enable identifiability of each router within the network we need only ensure the chosen set of probe paths is sufficient for this identification.\par
+    Let \gls{monitors}$\subset N$ (with $m=|\gls{monitors}|$) be a set of monitors, \gls{ppaths} denote the set of all possible probe paths, and $|P|$ be the number of potential probe paths. $P$ is then equal to all possible non cyclic paths between each pair of monitors. A naive approach of calculating all probe paths is therefore of the order $\mathcal{O}(m^m)$. As the network grows in size this super-exponential growth of possible probe paths requires a more discerning approach to probe path selection. As the ultimate goal of our end-to-end probing is to enable identifiability of each router within the network we need only ensure the chosen set of probe paths is sufficient for this identification.\par
     
     Unique router identification via probing is dependant on the flexibility afforded by the probe packet routing mechanism, we employ terminology from \cite{he_network_2021} and split these routing mechanisms into 4 groups: \begin{itemize}
         \item Uncontrollable routing (UR)
         \item Controllable cycle-free routing (CFR)
         \item Controllable cycle-based routing (CBR)
         \item Arbitrarily controllable routing (ACR)
-    \end{itemize}As these mechanisms dictate $P$ they define the identifiability of each router given $M$ or inversely the bounds of $|M|$ and what position within the network each $m\in M$ must be to uniquely identify each router.\par
+    \end{itemize}
+    These mechanisms, in conjunction with $M$, dictate the possible paths probe packets can take through the network. Therefore $P$ and $M$ together define whether each router is identifiable.\par
     Uncontrollable routing refers to when P is limited to only paths that the background traffic's link-state routing protocol establishes, given the dynamic nature of this routing we are unable to established a fixed $P$ violating the assumptions of our probe path routing, as such we will not consider UR in our analysis. Previous work in \cite{barnes_stochastic_2020} has established that in a stochastic routing network using UR for probe paths router identifiability cannot be established and a prohibitively computationally expensive Markov Chain Monte Carlo (MCMC) (\cite{dellaportas_bayesian_2002}) based estimation method must be used instead.\par
     
-    Arbitrarily controllable routing represents the ideal case where a probe packet traverse every link and router as many times as desired. This form of routing is analogous to that afforded by SDN and other strict source routing architectures (\cite{university_of_southern_california_darpa_1981}, \cite{open_networking_foundation_openflow_2015}) and allows for complete router identifiability using only a single arbitrarily placed monitor (\cite{he_network_2021}). Due to the triviality of router identification and limited SDN use cases in real world networks (\cite{jarschel_interfaces_2014}) under this scheme we will not consider ACR in our analysis.\par
-    The remaining routing mechanisms CBR and CFR represent routing mechanisms within all optical (\cite{ahuja_srlg_2011}) and multi protocol label switching (MPLS) networks (\cite{rosen_multiprotocol_2001}) respectively. In CBR a packet may traverse a router any number of times but only traverse each link once, in contrast under CFR a packet may only traverse every router and link at most once. As routing restrictions under CBR are relaxed compared to those under CFR for all topologies $max(P)|CFR \subseteq max(P)|CBR$. Both these mechanisms are widely used in the real world and provide an interesting set of limitations while still allowing for unique router identifiable, we therefore focus on these in our analysis.
-
+    CBR represents routing restrictions in an all optical (\cite{ahuja_srlg_2011}) network. Under CBR a packet may traverse a router any number of times but only traverse each link once. CFR represents routing restrictions in a multi protocol label switching (MPLS) network (\cite{rosen_multiprotocol_2001}). Under CFR a packet may only traverse every router and link at most once.\par
+    Arbitrarily controllable routing represents the ideal case where a probe packet traverse every link and router as many times as desired. This form of routing is analogous to that afforded by SDN and other strict source routing architectures (\cite{university_of_southern_california_darpa_1981}, \cite{open_networking_foundation_openflow_2015}). ACR allows for complete router identifiability using only a single arbitrarily placed monitor (\cite{he_network_2021}).\par
+    Due to the triviality of router identification and limited SDN use cases in real world networks (\cite{jarschel_interfaces_2014}) under ACR we do not consider ACR in our analysis. In contrast, CFR and CBR are widely used in the real world and provide an interesting set of limitations while still allowing for unique router identifiable. However, as routing restrictions under CBR are relaxed compared to those under CFR and for any topologies $max(P)|CFR \subseteq max(P)|CBR$. We therefore focus on CFR in our analysis.\par
 \section{Network Tomography}
 \label{sec:Bnetworktomography}
 In this section we describe how additive network tomography is used for network analysis. We analyse a small four router network to give a worked example of computing router packet delay metrics from end-to-end metrics. We then present a typical matrix representation of networks and the process of calculating probe paths using a seven router topology.
 
 \subsection{Inferring Node Metrics}
 \label{ssec:B4routerexample}
-Consider a 4 router network with a ring topology and monitored switches at routers 0 and 3 as shown in \cref{fig:4routereg}.
+Consider a 4 router network with monitored switches at routers 0 and 3 as shown in \cref{fig:4routereg}.
 
 \begin{figure}[H]
     \centering
@@ -101,7 +103,7 @@ At the end of the measurement interval, the difference in time from each packet 
     \caption{Histograms of probe path level delays for a 4 router ring network.}
     \label{fig:ppdelayhist}
 \end{figure}
-From these distributions we compute the mean and delay variance for each path, obtaining the values shown in \cref{tbl:4routerstats}. In this analytical approach the correlation between nefarious router behaviour and path level packet delay becomes glaringly obvious with an almost 200\% increase of delay variance in the path $p_0$ containing the nefarious router $r_1$. Probe path level analysis as we have conducted here however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$, if either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics in \cref{sec:Mnetworkprobing} .
+From these distributions we compute the mean and variance of the delay for each path, obtaining the values shown in \cref{tbl:4routerstats}. We observe an increase of almost 200\% in delay variance for $p_0$ containing the nefarious router $r_1$. This kind of analysis however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$. If either router was nefarious it would impact both path measurements equally and as such be undetectable. To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics.
 \begin{table}[H]
     \centering
     \begin{tabular}{@{}ccc@{}}
@@ -119,9 +121,9 @@ From these distributions we compute the mean and delay variance for each path, o
     \label{tbl:4routerstats}
 \end{table}
 
-\subsection{Probe Path Calculation}
+\subsection{Probe Path Requirements}
 \label{ssec:B7routerexample}
-We generalise networks as a binary $|\gls{routers}|\times|\gls{routers}|$ adjacent matrix where $|\gls{routers}|$ is the number of routers. The $i$th$\times j$th entry of the matrix is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. Using this notation we are able to express the example network shown in \cref{fig:6routersample} as the adjacency matrix $A$:
+We characterise networks as a binary $|\gls{routers}|\times|\gls{routers}|$ adjacency matrix $A$ where $|\gls{routers}|$ is the number of routers. The $(i, j)$ entry of the matrix is a 1 if router \emph{i} and \emph{j} are connected and a 0 otherwise. Such an adjacency matrix is often referred to in network science as a routing matrix, as both terms are appropriate depending on circumstance we will use them interchangeably. Using this notation we express the example network \cref{fig:6routersample} in \cref{eq:6routeradjmatrix}.
 
 \begin{figure}[H]
     \centering
@@ -183,14 +185,15 @@ We generalise networks as a binary $|\gls{routers}|\times|\gls{routers}|$ adjace
         0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
 \end{equation}
 
-We use this method of network representation as it interfaces best with existing network tomography techniques and is spatially efficient implementation. On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
-As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. The set of probe paths used $\gls{p*}$ is represented using a $|\gls{p*}|\times |\gls{routers}|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $\gls{p*}$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
-\[
-    P'=\begin{bmatrix}
+On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
+As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. We represent the set $P^*$ of probe paths used with a $|\gls{p*}|\times |\gls{routers}|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $\gls{p*}$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
+\begin{equation*}
+    P^*=\begin{bmatrix}
         1 & 1 & 0 & 0 & 1 & 1\\ 
     \end{bmatrix}
-\]
-Such a choice a $P$ would be useless however as it does not allow any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with full column rank, such as:
+\end{equation*}
+
+However, such a choice a $P$ does not allow for any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with full column rank, such as:
 \begin{equation}
 \label{eq:6routerppaths}
     P^*=\begin{bmatrix}
@@ -218,7 +221,7 @@ Using $P^*$ from \cref{eq:6routerppaths} we are able to compute a vector contain
     \end{split}
 \end{align}\par
 As discussed in \cref{sec:Mnetworkprobing} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnetworkprobing}.\par
-Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}+\gls{urouters}$.\par
+Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq \gls{ppaths}$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as \gls{urouters} and similarly the set of identifiable routers is denoted as \gls{irouters}, therefore the set of all routers $\gls{routers} = \gls{irouters}\cup \gls{urouters}$.\par
 Given this, we ignore \gls{urouters} and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in \gls{irouters}$ following conventions in \cref{eq:r1computation} to give the set of router level metrics \gls{metrics}:
 \begin{equation*}
     M = 
@@ -235,6 +238,109 @@ Resulting from this representation we define router identifiability succinctly a
     \forall r \in R_I,\;r \in M 
 \end{equation}
 \todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
+
+\subsection{Picking Probe Paths Parsimoniously}
+\label{ssec:Bparsppselection}
+
+With a scope limited to tree network topologies \cite{lawrence_network_2006} focused on deriving an algorithm for selection of a set of probe paths $P^*$ for network tomography. This algorithm selects the minimal set of probe paths that allow for complete node identifiability. Such a minimal set is desirable as when probing we allocate probe packets over each path $p\in P^*$, reducing the amount of information we gain about a path proportionally to the number of probe allocated to it.\par
+To ensure our inference is robust and has a maximal CRB (discussed in \cref{ssec:Bcrb}) we aim to gain as much data over the measurement interval as possible and adopt a parsimonious approach where we aim to select a $P^*$ s.t. \cref{eq:minpp} holds where $P$ is the set of all possible probe paths.
+\begin{equation}
+\label{eq:minpp}
+    I(P^*) = I(P)
+\end{equation}
+\par
+The problem of rigorously minimizing $P^*$ has been shown to be NP-hard by \cite{zheng_minimizing_2013}. However polynomial time solutions using a heuristic based approach for an approximation of a minimal $P*$ in general topologies have been derived previous and three notable methods have been developed: Zheng's algorithm (\cite{zheng_minimizing_2013}), Evolutionary Sampling algorithm (\cite{rahali_unicast_2019}), and Greedy-Min-Cost-Rank (\cite{tootaghaj_parsimonious_2018}). As the Evolutionary Sampling algorithm (ESA) was developed under the assumption of central monitors where all probe path metrics are compiled contrasting our assumption of observability of all monitors we do not consider ESA.\par
+\begin{algorithm}
+    \KwData{The linear system $L$ and parameter $\alpha$}
+    \KwResult{Minimal set of probe paths $P^*$}
+    
+    \For{each node}{
+        Calculate $\alpha$ solutions using $A$ and $L$\;
+    }
+    Construct the extended bipartite graph $G'=(U,V,E)$ with the selected solutions\;
+    $P^* \gets \varnothing$ \;
+    $C \gets \varnothing$ \;
+    \While{$\exists\ n \in V_1,\ n\not\in C$}{
+        $u_{selected} \gets u_x\in U_1\ \text{with max}\left(\frac{|newV2|}{|newpaths|}\right)$ where: $newV2 = v_i\in V_2 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
+        $C \gets C + u_{selected}$\;
+        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
+        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
+            $P^* \gets P^* + p_i$\;
+        }
+    }
+    \While{$\exists\ n \in V_2,\ n\not\in C$}{
+        $u_{selected} \gets u_x\in U_1\cup U_2\ \text{with max}\left(\frac{|newV1|}{|newpaths|}\right)$ where: $newV1 = v_i\in V_1 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
+        $C \gets C + u_{selected}$\;
+        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
+        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
+            $P^* \gets P^* + p_i$\;
+        }
+    }
+    Remove all replaceable probing paths from set $P^*$ using $L$\;
+    \caption{Zheng's minimal probe path selection algorithm}
+    \label{alg:zhengs}
+\end{algorithm}
+
+\captionsetup{justification=centering}
+\begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{bipartitegraph}
+    \begin{tikzpicture}[
+        node/.style={circle, draw=black!60, very thick, minimum size=5mm},
+        group/.style={circle, draw=black!60, very thick, minimum size=5mm},]
+        
+        % Nodes
+        \node[node] (v10) at (-6.5,1.5) {};
+        \node[node] (v11) at (-5.5,1.5) {};
+        \node at (-4.5,1.5) {{\LARGE\ldots}};
+        \node[node] (v12) at (-3.5,1.5) {};
+        
+        \node[node] (u10) at (-6.5,-1.5) {};
+        \node[node] (u11) at (-5.5,-1.5) {};
+        \node at (-4.5,-1.5) {{\LARGE\ldots}};
+        \node[node] (u12) at (-3.5,-1.5) {};
+        
+        \node[node] (v20) at (-0.5,1.5) {};
+        \node[node] (v21) at (0.5,1.5) {};
+        \node at (1.5,1.5) {{\LARGE\ldots}};
+        \node[node] (v22) at (2.5,1.5) {};
+        
+        \node[node] (u20) at (-0.5,-1.5) {};
+        \node[node] (u21) at (0.5,-1.5) {};
+        \node at (1.5,-1.5) {{\LARGE\ldots}};
+        \node[node] (u22) at (2.5,-1.5) {};
+        
+        % Groups
+        \draw[dashed] (-5,1.6) ellipse (2.5cm and 0.75cm);
+        \draw[dashed] (-5,-1.6) ellipse (2.5cm and 0.75cm);
+        \draw[dashed] (1,1.6) ellipse (2.5cm and 0.75cm);
+        \draw[dashed] (1,-1.6) ellipse (2.5cm and 0.75cm);
+        
+        % Edges
+        \draw[very thick] (v10) -- (u10);
+        \draw[very thick] (v10) -- (u11);
+        \draw[very thick] (v11) -- (u12);
+        \draw[very thick] (v11) -- (u10);
+        \draw[very thick] (v12) -- (u12);
+        \draw[very thick] (v20) -- (u11);
+        \draw[very thick] (v20) -- (u12);
+        \draw[very thick] (v21) -- (u22);
+        \draw[very thick] (v20) -- (u20);
+        \draw[very thick] (v22) -- (u21);
+        \draw[very thick] (v22) -- (u22);
+        
+        % Labels
+        \node at (-5,2) {$V_1$};
+        \node at (-5,-2) {$U_1$};
+        \node at (1,2) {$V_2$};
+        \node at (1,-2) {$U_2$};
+    \end{tikzpicture}
+    \caption[Extended bipartite model of the network for probe path selection.]{Extended bipartite model of the network for probe path selection.}
+    \label{fig:ebgm}
+\end{figure}
+Both Greedy-Min-Cost-Rank (GMCR) and Zheng's algorithm minimize the probing cost in a context analogous to ours, however the key difference is in definition of probing cost. In Zheng's algorithm the probing cost is defined as $|P^*|$ whereas in GMCR it is the total number of 'hops' or nodes in all paths $\forall p_i\in P^*,\ \sum |p_i|$. Although developed for the purpose of link tomography \cite{zheng_minimizing_2013} note it's applicability to node tomography we therefore adopt Zheng's algorithm \cref{alg:zhengs} for it's alignment with our goal of minimizing $|P^*|$.\par
+The core idea behind Zheng's algorithm is quantifying the contribution of a probe path to node identifiability and then adopting a greedy selection approach until all nodes are identifiable. The criteria used for the greedy is based on a novel extended bipartite graph model (EBGM) shown in \cref{fig:ebgm}.\par
+This graph model groups network nodes into $V_1$ or $V_2$ based on if the node is identifiable or not. The group $U_1$ contains sets of probe paths that enable identification of a node in $V_1$, with an edge connecting a node in $V_1$ and $U_2$ if the set of paths in $U_2$ enables identification of $V_1$. Similarly $U_2$ contains probe paths which traverse a node in $V_2$, with an edge connecting a node in $V_2$ and $U_2$ if the path traverses that node.
 
 \section{Parameter Estimation}
 \label{sec:Bparameterestimation}
@@ -330,7 +436,7 @@ This matrix concisely represents the co-variance of all MLEs, with the co-varian
 \subsection{The Cramér–Rao Bound}
 \label{ssec:Bcrb}
 
-Given $I(\theta)$ the Cramér–Rao Bound (CRB) gives a lower bound on the accuracy with which we can estimate each $\theta\in\hat\theta$. From \cref{ssec:Bmle} we know that $\VAR(\gls{mle})$ dictates our confidence that the MLE reflects the true value of the parameter, it follows that the CRB is simply a bound on $\VAR(\gls{mle})$, we provide a proof from \cite{trees_detection_2013} under the assumption that the MLE is unbiased.
+Given $I(\theta)$ the Cramér–Rao Bound (CRB) gives a lower bound on the accuracy with which we can estimate each $\theta\in\hat\theta$. From \cref{ssec:Bmle} we know that $\VAR(\gls{mle})$ dictates our confidence that the MLE reflects the true value of the parameter, it follows that the CRB is a bound on $\VAR(\gls{mle})$, we provide a proof from \cite{trees_detection_2013} under the assumption that the MLE is unbiased.
 \begin{lemma}\label{lem:dx1}
 Given an unbiased estimator $\int f\ dx=1$ 
 \end{lemma}
@@ -341,7 +447,7 @@ Given an unbiased estimator $\int f\ dx=1$
     &= \int \hat\theta - \theta) f(x\ |\ \theta)\frac{\partial}{\partial\theta}dx-\int f\ dx\\
     &\therefore \int f\ dx = 1
 \end{align*}
-Using lemma 3.4.1 and the intuitive equality $\frac{\partial f}{\partial\theta} = f\frac{\partial log f}{\partial\theta}$ it follows:
+Using lemma 3.4.1 and the equality $\frac{\partial f}{\partial\theta} = f\frac{\partial log f}{\partial\theta}$ it follows:
 \begin{equation}\label{eq:crbderivation}
 \begin{aligned}
     \int(\hat\theta-\theta)\ \frac{\partial logf}{\partial\theta}dx = 1\\
@@ -360,114 +466,9 @@ For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$,
     &\geq [I(\vec{\theta})_{ii}]^{-1}
 \end{align*}
 
-\section{Optimization Techniques}
+\section{Optimum Experiment Design}
 \label{sec:Boptimization}
-The accuracy of tomographic analysis is intuitively bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing. We decompose the measurement process into two stages: selection of paths to probe between monitor nodes and allocation of probes over these paths.\par
-In \cref{ssec:Bparsppselection} we address the first of these stages. We justify the desire for a minimal number of paths and present Zheng's algorithm for selecting this minimal set of paths. Next in \cref{ssec:Boptimumdesigns} we introduce concepts of optimum experimental design with the intent of using these to compute optimal probe allocation between paths in \cref{ssec:Mpallocation}.
-
-\subsection{Parsimonious Probe Path Selection}
-\label{ssec:Bparsppselection}
-
-With a scope limited to tree network topologies \cite{lawrence_network_2006} focused on deriving an algorithm for an optimal selection of a set of probe paths $P^*$ for network tomography. We define an optimal selection of probe paths as the minimal set of probe paths that allow for complete node identifiability. Such a minimal set is desirable as when probing we allocate probe packets over each path $p\in P^*$, reducing the amount of information we gain about a path proportionally to the number of probe allocated to it. To ensure our inference is robust and has a maximal CRB (discussed in \cref{ssec:Bcrb}) we aim to gain as much data over the measurement interval as possible and adopt a parsimonious approach where we aim to select a $P^*$ s.t. \cref{eq:minpp} holds where $P$ is the set of all possible probe paths.
-\begin{equation}
-\label{eq:minpp}
-    I(P^*) = I(P)
-\end{equation}
-\par
-The problem of rigorously minimizing $P^*$ has been shown to be NP-hard by \cite{zheng_minimizing_2013}. However polynomial time solutions using a heuristic based approach for an approximation of a minimal $P*$ in general topologies have been derived previous and three notable methods have been developed: Zheng's algorithm (\cite{zheng_minimizing_2013}), Evolutionary Sampling algorithm (\cite{rahali_unicast_2019}), and Greedy-Min-Cost-Rank (\cite{tootaghaj_parsimonious_2018}). As the Evolutionary Sampling algorithm (ESA) was developed under the assumption of central monitors where all probe path metrics are compiled contrasting our assumption of observability of all monitors we do not consider ESA.\par
-\captionsetup{justification=centering}
-\begin{figure}[H]
-    \centering
-    \tikzsetnextfilename{bipartitegraph}
-    \begin{tikzpicture}[
-        node/.style={circle, draw=black!60, very thick, minimum size=5mm},
-        group/.style={circle, draw=black!60, very thick, minimum size=5mm},]
-        
-        % Nodes
-        \node[node] (v10) at (-6.5,1.5) {};
-        \node[node] (v11) at (-5.5,1.5) {};
-        \node at (-4.5,1.5) {{\LARGE\ldots}};
-        \node[node] (v12) at (-3.5,1.5) {};
-        
-        \node[node] (u10) at (-6.5,-1.5) {};
-        \node[node] (u11) at (-5.5,-1.5) {};
-        \node at (-4.5,-1.5) {{\LARGE\ldots}};
-        \node[node] (u12) at (-3.5,-1.5) {};
-        
-        \node[node] (v20) at (-0.5,1.5) {};
-        \node[node] (v21) at (0.5,1.5) {};
-        \node at (1.5,1.5) {{\LARGE\ldots}};
-        \node[node] (v22) at (2.5,1.5) {};
-        
-        \node[node] (u20) at (-0.5,-1.5) {};
-        \node[node] (u21) at (0.5,-1.5) {};
-        \node at (1.5,-1.5) {{\LARGE\ldots}};
-        \node[node] (u22) at (2.5,-1.5) {};
-        
-        % Groups
-        \draw[dashed] (-5,1.6) ellipse (2.5cm and 0.75cm);
-        \draw[dashed] (-5,-1.6) ellipse (2.5cm and 0.75cm);
-        \draw[dashed] (1,1.6) ellipse (2.5cm and 0.75cm);
-        \draw[dashed] (1,-1.6) ellipse (2.5cm and 0.75cm);
-        
-        % Edges
-        \draw[very thick] (v10) -- (u10);
-        \draw[very thick] (v10) -- (u11);
-        \draw[very thick] (v11) -- (u12);
-        \draw[very thick] (v11) -- (u10);
-        \draw[very thick] (v12) -- (u12);
-        \draw[very thick] (v20) -- (u11);
-        \draw[very thick] (v20) -- (u12);
-        \draw[very thick] (v21) -- (u22);
-        \draw[very thick] (v20) -- (u20);
-        \draw[very thick] (v22) -- (u21);
-        \draw[very thick] (v22) -- (u22);
-        
-        % Labels
-        \node at (-5,2) {$V_1$};
-        \node at (-5,-2) {$U_1$};
-        \node at (1,2) {$V_2$};
-        \node at (1,-2) {$U_2$};
-    \end{tikzpicture}
-    \caption[Extended bipartite model of the network for probe path selection.]{Extended bipartite model of the network for probe path selection.}
-    \label{fig:ebgm}
-\end{figure}
-Both Greedy-Min-Cost-Rank (GMCR) and Zheng's algorithm minimize the probing cost in a context analogous to ours, however the key difference is in definition of probing cost. In Zheng's algorithm the probing cost is defined as $|P^*|$ whereas in GMCR it is the total number of 'hops' or nodes in all paths $\forall p_i\in P^*,\ \sum |p_i|$. Although developed for the purpose of link tomography \cite{zheng_minimizing_2013} note it's applicability to node tomography we therefore adopt Zheng's algorithm \cref{alg:zhengs} for it's alignment with our goal of minimizing $|P^*|$. The core idea behind Zheng's algorithm is quantifying the contribution of a probe path to node identifiability and then adopting a greedy selection approach until all nodes are identifiable. The criteria used for the greedy is based on a novel extended bipartite graph model (EBGM) shown in \cref{fig:ebgm}.\par
-This graph model groups network nodes into $V_1$ or $V_2$ based on if the node is identifiable or not. The group $U_1$ contains sets of probe paths that enable identification of a node in $V_1$, with an edge connecting a node in $V_1$ and $U_2$ if the set of paths in $U_2$ enables identification of $V_1$. Similarly $U_2$ contains probe paths which traverse a node in $V_2$, with an edge connecting a node in $V_2$ and $U_2$ if the path traverses that node.
-\begin{algorithm}
-    \KwData{The linear system $L$ and parameter $\alpha$}
-    \KwResult{Minimal set of probe paths $P^*$}
-    
-    \For{each node}{
-        Calculate $\alpha$ solutions using $A$ and $L$\;
-    }
-    Construct the extended bipartite graph $G'=(U,V,E)$ with the selected solutions\;
-    $P^* \gets \varnothing$ \;
-    $C \gets \varnothing$ \;
-    \While{$\exists\ n \in V_1,\ n\not\in C$}{
-        $u_{selected} \gets u_x\in U_1\ \text{with max}\left(\frac{|newV2|}{|newpaths|}\right)$ where: $newV2 = v_i\in V_2 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
-        $C \gets C + u_{selected}$\;
-        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
-        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
-            $P^* \gets P^* + p_i$\;
-        }
-    }
-    \While{$\exists\ n \in V_2,\ n\not\in C$}{
-        $u_{selected} \gets u_x\in U_1\cup U_2\ \text{with max}\left(\frac{|newV1|}{|newpaths|}\right)$ where: $newV1 = v_i\in V_1 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
-        $C \gets C + u_{selected}$\;
-        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
-        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
-            $P^* \gets P^* + p_i$\;
-        }
-    }
-    Remove all replaceable probing paths from set $P^*$ using $L$\;
-    \caption{Zheng's minimal probe path selection algorithm}
-    \label{alg:zhengs}
-\end{algorithm}
-
-\subsection{Optimum Experiment Design}
-\label{ssec:Boptimumdesigns}
-
+The accuracy of tomographic analysis is bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing. Specifically, we introduce concepts of optimum experimental design with the intent of using these to compute optimal probe allocation between paths in \cref{cha:methodology}.\par
 Optimum experiment design (OED) is board field of study focusing on statistical methods to ensure an experiment yields the most robust and accurate results possible. Initially shepherded by \cite{smith_standard_1918}, of particular pertinence to tomography is OEDs applicability to parameter estimation in inverse problems. Work around OED for parameter estimation, as noted in \cref{cha:litreview}, primarily focuses on minimising the number of trials or "experimental cost" for accurately estimating a system's underlying statistical models, this lens can be inverted to instead maximise the accuracy of this estimation from a fixed number of trials.\par
 At a high level, the problem of designing an optimal experiment is typically decomposed into 4 primary sub-problems: specification of a model, identification of the design region, specification of a design criterion, and specification of errors. If the formulated design differs significantly from popular existing approaches in literature a comparison should be drawn to validate key differences or identify missteps in problem specification. Irrelevant of its formulation, the experiment produces an estimator of the underlying parameters and is evaluated w.r.t the variance of this estimator as, intuitively, the variance of the estimator corresponds to the accuracy of the experiment.\par
 Experiments to infer complex model\footnote{A complex model is analogous to the mathematical representation of a multi-parametric system such as a computer network.} parameters (sometimes referred to as screening experiments) can be evaluated using a range of statistical criteria however the two most common are A-optimality and D-optimality. A-optimality minimizes the average variance of all parameter estimates or, as the diagonal elements of the FIM correspond to these variances (\cref{ssec:Bfisherinformation}), the trace of the FIM tr$\left(\gls{fi}\right)$. In contrast D-optimality minimises the confidence region around the estimators, as this confidence region is inversely proportional to the determinant of the FIM (\cite{jones_-optimal_2021}) this is equivalent to maximising $|\gls{fi}|$.\par

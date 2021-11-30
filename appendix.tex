@@ -149,7 +149,56 @@
   We record the estimated curve fitting parameters from SciPy's curve fitting, noting the minimum and maximum values are approximately the supplied initial guesses. Finally, variation of the functions parameters w.r.t max queue length and background traffic intensity were modeled. This enabled estimation of the PDA to hold probability relation given only network parameters.\par
   Inverting the observed empirical PDA from varying hold probabilities we are able to estimate hold probability from PDA alone. Using this estimation of hold probability we select a hold probability between 0.0-1.0 as a threshold for a router being classified as nefarious. We then generate a ROC curve to evaluate the efficacy of our classification in the most general context possible. We do not present a confusion matrix  as requirements governing tolerated number of false negatives and false positive will vary between systems.\par
   
-  Once again considering the baseline network in \cref{fig:M6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
+  We consider the baseline network in \cref{fig:A6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
+  \begin{figure}[H]
+    \centering
+    \tikzsetnextfilename{6routertopology_appendix}
+    \begin{tikzpicture}[
+        router/.style={circle, draw=yellow!60, fill=yellow!5, very thick, minimum size=3.5mm},
+        nef_router/.style={circle, draw=red!60, fill=red!5, very thick, minimum size=3.5mm},
+        switch/.style={rectangle, draw=cyan!60, fill=cyan!5, very thick, minimum size=2.5mm},
+        monitor/.style={rectangle, draw=magenta!60, fill=magenta!5, very thick, minimum size=2.5mm},]
+        
+        % Routers
+        \node[router] (r0) at (-4.5,0)    {$r_0$};
+        \node[router] (r1) at (-1.5,1.5)  {$r_1$};
+        \node[router] (r2) at (-1.5,-1.5) {$r_2$};
+        \node[router] (r3) at (1.5,1.5)   {$r_3$};
+        \node[router] (r4) at (1.5,-1.5)  {$r_4$};
+        \node[router] (r5) at (4.5,0)     {$r_5$};
+        
+        %Switches
+        \node[monitor](s00) at (-6,.75)   {$s_{0,0}$};
+        \node[switch] (s01) at (-6,-.75)  {$s_{0,1}$};
+        \node[switch] (s10) at (-1.5,3)   {$s_{1,0}$};
+        \node[switch] (s20) at (-1.5,-3)  {$s_{2,0}$};
+        \node[switch] (s30) at (1.5,3)   {$s_{3,0}$};
+        \node[switch] (s40) at (1.5,-3)   {$s_{4,0}$};
+        \node[switch] (s50) at (6,.75)   {$s_{5,0}$};
+        \node[monitor](s51) at (6,-.75)   {$s_{5,1}$};
+        %Links
+        \draw[-] (r0.east) -- (r1);
+        \draw[-] (r0.east) -- (r2);
+        \draw[-] (r1) -- (r2);
+        \draw[-] (r1) -- (r3);
+        \draw[-] (r1.south east) -- (r4.north west);
+        \draw[-] (r2) -- (r3);
+        \draw[-] (r2) -- (r4);
+        \draw[-] (r3) -- (r4);
+        \draw[-] (r3) -- (r5.west);
+        \draw[-] (r4) -- (r5.west);
+        \draw[-] (s00.east) -- (r0.west);
+        \draw[-] (s01.east) -- (r0.west);
+        \draw[-] (s10) -- (r1);
+        \draw[-] (s20) -- (r2);
+        \draw[-] (s30) -- (r3);
+        \draw[-] (s40) -- (r4);
+        \draw[-] (s50.west) -- (r5.east);
+        \draw[-] (s51.west) -- (r5.east);
+    \end{tikzpicture}
+    \caption{6 router network with 2 monitors located at $r_0$ and $r_5$ (Reprinted from page \pageref{fig:6routersample})}
+    \label{fig:A6routertop}
+\end{figure}\par
 We consider only the case of $r_1$ begin nefarious, we measure the impact of hold probabilities on packet delay metrics over varying buffer queue lengths. Firstly considering PDA plots of original values and values with a standard min-max normalisation applied are given in \cref{fig:Rvariedqlenpda}.\par
 From these we see that irrespective of queue length the relation between hold probability and PDA appears to be a sigmoid curve. Using a standard Levenberg–Marquardt method \cite{osborne_nonlinear_1976} we fit a sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results. We selected the Levenberg–Marquardt minimisation algorithm as it performed the best over all fits, both the trust region reflective algorithm and dogleg algorithm with a rectangular trust region were tried but produced inferior $R^2$ values, results for these fits are shown in \cref{Aaltcurvefit}.\par
 The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, accurate enough to confirm the initial prediction. In the non-normalised case the upper bound of each sigmoid is given by approximately the maximum length and a lower bound being approximately 0. In normalising the data we see that an increase in queue length both shifts the inflection point of the sigmoid to the right and reduces the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real world systems, as such we do not consider these in further analysis and leave them to future work.\par
