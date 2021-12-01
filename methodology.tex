@@ -11,7 +11,7 @@ This section details network topology data sets, network traffic data generation
 
 \subsection{Data Sets}
 \label{ssec:Mdatasets}
-Real world topology data sets are from the SNDLib project (\cite{orlowski_sndlib_2007}) and the Internet Topology Zoo project (\cite{knight_internet_2011}). We have selected three national ISP topologies for analysis, details of these network are shown in \cref{tbl:Mrealnetworkattributes}. These topologies were selected as they have a high connectivity (without being fully connected) and large number of nodes (>15) compared to other typologies within the data set. We believe this combination represents real-world scenarios where network tomography can provide useful results with non-trivial performance improvements over conventional monitoring methods.\par
+Real world topology data sets are from the SNDLib project (\cite{orlowski_sndlib_2007}) and the Internet Topology Zoo project (\cite{knight_internet_2011}). We have selected three national ISP topologies for analysis, details and plots of these network are shown in \cref{tbl:Mrealnetworkattributes} and \cref{fig:MISPplots} respectivley. These topologies were selected as they have a high connectivity (without being fully connected) and large number of nodes (>15) compared to other typologies within the data set. We believe this combination represents real-world scenarios where network tomography can provide useful results with non-trivial performance improvements over conventional monitoring methods.\par
 A synthetic 7 router network was also used for initial data exploration. A worked example of network tomography using this network and a diagram of the topology is provided in \cref{sec:Mnetworkprobing}.\par
   \begin{table}
     \centering
@@ -29,6 +29,25 @@ A synthetic 7 router network was also used for initial data exploration. A worke
     \caption{Real world network ISP topology attributes.}
     \label{tbl:Mrealnetworkattributes}
   \end{table}
+
+\noindent
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/nobel-germany_case2_roc.png}
+        \caption{Nobel Topology.}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/france_case2_roc.png}
+        \caption{Free Topology.}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/norway_case2_roc.png}
+        \caption{CPLEX Topology.}
+    \end{subfigure}
+    \caption{Plots of each real-world ISP topology.}
+    \label{fig:MISPplots}
+\end{figure}
 
 \subsection{Data Processing}
 \label{ssec:Mdataprocessing}

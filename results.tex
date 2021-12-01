@@ -159,9 +159,10 @@ In sub-figure a, for false positive rates < 0.5 classification with unoptimised 
 
 \subsection{Lower Accuracy Bound}
 \label{ssec:Rloweraccuracybounds}
-Results from analytical calculation of the CBR given probe paths and probe allocation for each topology are given in \cref{tbl:crbs}. In each case the CRB is extremely low, this is due to the large number of probe paths used in tomography for each topology. However, as this only represent a lower bound we focus on comparison of the CRB between each probe allocation scheme. The CRB of network tomography with PPA is greater than with an unoptimised probe allocation in each topology.\par
-The improvement in accuracy of network tomography in the Nobel and CPLEX topologies is 2.07e-4 and 7.92e-6, however, for the Free topology the improvement is only -4.9e-7. This is consistent with ROC curves in \cref{fig:RprobeoptROCcurves} where a significant improvement in classification was observed for the Nobel and CPLEX topologies. Additionally, the smaller difference in CRB between probe allocation schemes for the Free topology corresponds with classifier performance, where the smallest difference between probe allocation schemes was observed.
-
+Results from analytical calculation of the CBR given probe paths and probe allocation for each topology are given in \cref{tbl:crbs}. In each case the CRB is extremely low, this is due to the large number of probe paths used in tomography for each topology. However, as this only represent a lower bound we focus on comparison of the CRB between topologies and each probe allocation scheme in a topology.\par
+For both probe allocations network tomography in the Nobel topology has the highest CRB. Probing the in the Free and CPLEX topologies was calculated to have the second highest and lowest CRB respectively. This corresponds to classifier accuracy evaluation from ROC curves of each classifier in \cref{fig:RprobeoptROCcurves}. This decrease in accuracy is proportional to the increase in number of routers in each each topology. This is due to the additional probe paths required to uniquely identify each router reducing the number of measurements we are able to take over each path.\par
+However, under PPA probing the larger CPLEX network has a higher CRB than the Free network. This is due to the Free topology containing a router with a degree of ten which a disproportionate number of probe paths traverse. Under PPA more probe packets are sent to this router, causing more to be dropped as its buffer queue is already at capacity. These dropped probe packets are the cause of this decrease in the lower accuracy bound.\par
+Comparing probing scheme within topologies, the CRB of network tomography with PPA is greater than with an unoptimised probe allocation for each topology. The improvement in accuracy of network tomography in the Nobel and CPLEX topologies is 2.07e-4 and 7.92e-6, however, for the Free topology the improvement is only -4.9e-7.\par
 \begin{table}[H]
  \centering
   \begin{tabular}{@{}ccc@{}}
@@ -178,9 +179,43 @@ The improvement in accuracy of network tomography in the Nobel and CPLEX topolog
   \caption{Calculated Cramér–Rao bound for each topology and probe allocation}
   \label{tbl:crbs}
 \end{table}
+This is consistent with ROC curves in \cref{fig:RprobeoptROCcurves} where a significant improvement in classification was observed for the Nobel and CPLEX topologies. Additionally, the smaller difference in CRB between probe allocation schemes for the Free topology corresponds with classifier performance, where the smallest difference between probe allocation schemes was observed.\par
+
 
 \subsection{Metric Normalisation}
 \label{ssec:Rmetricnormilisation}
-
+ROC curves for nefarious router classification with PDA normalised w.r.t. router degree are shown in \cref{fig:RmetricnormROCcurves}. We omit classifier one as it does not use PDA for classification. For classifier two, a decrease in accuracy across all true and false positives rates is seen. Similarly, for classifier three an equal or lesser accuracy over all topologies is seen.\par
+The general decrease in classification accuracy is likely due to a router's degree being a poor representation of the number of packets it receives each timestep. Other contributing factors such as the routing tables of surrounding routers and their respective degree would also likely need to be accounted for. It is also possible that the contributions of incoming traffic and nefarious delaying to a routers queue length are intrinsically related.\par
+This means that attempts to account for incoming traffic contributions to better identify nefarious delaying are unlikely to yield classification improvements irrelevant of the number of factors relating to incoming traffic volume are accounted for. We therefore highlight methods of distinguishing between incoming traffic, and other factors which contribute to a router's buffer queue size, to better identify nefarious delaying behaviour as an area for future research.\par
+\noindent
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[H]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/metric_normilisation/nobel-germany_ac2.png}
+        \caption{Nobel Topology Classifier 2.}
+    \end{subfigure}
+    \begin{subfigure}[H]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/metric_normilisation/nobel-germany_ac3.png}
+        \caption{Nobel Topology Classifier 3.}
+    \end{subfigure}
+    \begin{subfigure}[H]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/metric_normilisation/france_ac2.png}
+        \caption{Free Topology Classifier 2.}
+    \end{subfigure}
+    \begin{subfigure}[H]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/metric_normilisation/france_ac3.png}
+        \caption{Free Topology Classifier 3.}
+    \end{subfigure}
+    \begin{subfigure}[H]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/metric_normilisation/norway_ac2.png}
+        \caption{CPLEX Topology Classifier 2.}
+    \end{subfigure}
+    \begin{subfigure}[H]{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/metric_normilisation/norway_ac3.png}
+        \caption{CPLEX Topology Classifier 3.}
+    \end{subfigure}
+    \caption{ROC curves for optimised classification.}
+    \label{fig:RmetricnormROCcurves}
+\end{figure}
 
 \section{Summary}
