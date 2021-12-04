@@ -33,7 +33,7 @@
 \usepackage{appendix}
 \usepackage{tikz}
 \usepackage{xparse}
-\usepackage[symbols,nogroupskip,nonumberlist,sort=def]{glossaries-extra}
+% \usepackage[symbols,nogroupskip,nonumberlist,sort=def]{glossaries-extra}
 \usepackage{mdframed}
 \usepackage{ifdraft}
 \usepackage{booktabs}
@@ -58,7 +58,8 @@
             plainpages=false,
             pdfpagelabels,
             pagebackref=true,
-            hyperfootnotes=false]{hyperref}
+            hyperfootnotes=false,
+            hidelinks]{hyperref}
 \usepackage[all]{hypcap}
 \usepackage{cleveref}
 
@@ -97,29 +98,6 @@
 \crefrangeformat{section}{\S\S#3#1#4 to~#5#2#6}
 \crefmultiformat{section}{\S\S#2#1#3}{ and~#2#1#3}{, #2#1#3}{ and~#2#1#3}
 
-% 
-% Glossary
-% 
-\makenoidxglossaries
-\glsxtrnewsymbol[description={The graph representing the network under analysis.}]{network}{\ensuremath{N}}
-\glsxtrnewsymbol[description={Set of switches within the network $N$, analogous to link to external sub-networks}]{switches}{\ensuremath{S}}
-\glsxtrnewsymbol[description={Set of monitors within the network where $M\subseteq S$}]{monitors}{\ensuremath{M}}
-\glsxtrnewsymbol[description={Set of routers within the network.}]{routers}{\ensuremath{R}}
-\glsxtrnewsymbol[description={Set of nefarious routers within the network $R_N\subseteq R$ that problematically hold packets.}]{nefrouters}{\ensuremath{R_N}}
-\glsxtrnewsymbol[description={Cardinality of a set of network elements, or number of those within the network (i.e. |R| is the number of routers within the network).}]{|}{\ensuremath{|\;|}}
-\glsxtrnewsymbol[description={The number of packets a given network element receives in a single time step}]{qlen}{\ensuremath{Q}}
-\glsxtrnewsymbol[description={Set of all possible paths between monitors.}]{ppaths}{\ensuremath{P}}
-\glsxtrnewsymbol[description={Set of paths between monitors which are actively probed for measurement $P^*\subseteq P$.}]{p*}{\ensuremath{P^*}} 
-\glsxtrnewsymbol[description={The degree or number of links attached to a router}]{routerdeg}{\ensuremath{deg(r)}}
-\glsxtrnewsymbol[description={The maximum degree of a node within a graph of subset of nodes, realised in context as $\Delta (R)$ or the maximum number of links attached to a router within the network.}]{maxdeg}{\ensuremath{\Delta}}
-\glsxtrnewsymbol[description={Routers which are unidentifiable irrespective of $P^*$ under the chose routing scheme.}]{urouters}{\ensuremath{R_U}}
-\glsxtrnewsymbol[description={Routers which are identifiable using some $P^*\subseteq P$ under the chose routing scheme.}]{irouters}{\ensuremath{R_I}}
-\glsxtrnewsymbol[description={The maximum likelihood estimator, or the most likely set of function or model parameters $\theta$ which produced the observed outcomes.}]{mle}{\ensuremath{\hat\theta}}
-\glsxtrnewsymbol[description={Set of router level metrics collected for each $r\in R_I$}]{metrics}{\ensuremath{\mathcal{M}}}
-\glsxtrnewsymbol[description={The score function of a set of observations from an underlying distribution}]{score}{\ensuremath{\mathcal{S}}}
-\glsxtrnewsymbol[description={The Fisher information a set of observations contains about the underlying parameters $\vec{\theta}$}]{fi}{\ensuremath{I(\vec{\theta})}}
-% /glossary
-
 \input{macros}            
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Preamble
@@ -141,7 +119,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Todo's
-\ifdraft{\listoftodos}{}
+% \ifdraft{\listoftodos}{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Here begin the preliminaries
@@ -171,7 +149,6 @@
 \pagestyle{headings}
 \markboth{Contents}{Contents}
 \tableofcontents
-\printnoidxglossary[type=symbols,style=long,title={Notation and Terminology}]
 \listoffigures
 \listoftables
 
