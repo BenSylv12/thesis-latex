@@ -276,3 +276,25 @@ The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, acc
         \caption{Plots of parameters for modeled sigmoid relationship between hold probability and router buffer queue length.}
         \label{fig:Rsigmoidcoefs}
     \end{figure}
+    
+\section{Derivation of the Cramér–Rao Bound}
+We provide a derivation from \cite{trees_detection_2013} given an unbiased estimator $\int f\ dx=1$ 
+\begin{align*}
+    0 &= \EX[\hat\theta - \theta\ |\ \theta]\\
+    &= \int (\hat\theta - \theta) f(x\ |\ \theta)dx\\
+    &= \frac{\partial}{\partial\theta}\int \hat\theta - \theta) f(x\ |\ \theta)dx\\
+    &= \int \hat\theta - \theta) f(x\ |\ \theta)\frac{\partial}{\partial\theta}dx-\int f\ dx\\
+    &\therefore \int f\ dx = 1
+\end{align*}
+Using this and the equality $\frac{\partial f}{\partial\theta} = f\frac{\partial log f}{\partial\theta}$ it follows:
+\begin{equation}\label{eq:crbderivation}
+\begin{aligned}
+    \left[\int(\hat\theta -\theta)^2 f\ dx\right]\cdot
+    \left[\int\left(\frac{\partial logf}{\partial\theta}\right)^2 f\ dx\right] &\geq
+    \left(\int((\hat\theta-\theta)\sqrt{f})\cdot
+    \left(\sqrt{f}\ \frac{\partial logf}{\partial\theta}\right) dx\right)^2\\
+    & \geq \int((\hat\theta-\theta)\sqrt{f})\cdot\left(\sqrt{f}\ \frac{\partial logf}{\partial\theta}\right) dx\\
+    & \geq \int(\hat\theta-\theta)\ \frac{\partial logf}{\partial\theta}dx\\
+    & \geq 1
+\end{aligned}
+\end{equation}
