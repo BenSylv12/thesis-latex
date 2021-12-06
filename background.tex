@@ -1,49 +1,55 @@
 \chapter{Background}
 \label{cha:background}
 
-In this chapter we aim to provide the reader with a concrete understanding of key concepts in network tomography. We also introduce metrics and methods to analyse and verify network tomography. We begin with the theory and intuition behind previously used random network generation algorithms in \cref{sec:Bgraphgeneration}.\par
-We establish the requirement for discriminatory probe path routing within the network and draw real world analogues for hypothetical routing constraints in \cref{sec:Broutingmechanisms}. Routing is separated into four classes according to these restraints and a focus on the \cbr and \cfr mechanisms for subsequent sections is established.\par
-We then cover key statistical concepts, describing how they are used in this work in \cref{sec:Bparameterestimation} and \cref{sec:Boptimization}. Lastly we tie all aforementioned concepts together through their use in our novel tomographic model and explore previous implementations of network tomography algorithms in \cref{sec:Mnetworkprobing}.
+In this chapter we aim to provide the reader with a concrete understanding of key concepts in network tomography. We also introduce metrics and methods to analyse and verify network tomography. We begin (in \cref{sec:Bgraphgeneration}) with the theory and intuition behind previously used random network generation algorithms.\par
+In \cref{sec:Broutingmechanisms} we establish the requirement for discriminatory probe path routing within the network, and draw real-world analogues for hypothetical routing constraints. Routing is separated into four classes according to these restraints, and we establish a focus on the \cbr and \cfr mechanisms for subsequent sections.\par
+We then cover key statistical concepts, describing how they are used in this work (\cref{sec:Bparameterestimation} and \cref{sec:Boptimization}). Lastly we tie all the aforementioned concepts together through their use in our novel tomographic model, and we explore previous implementations of additive network tomography in the corpus (\cref{sec:Mnetworkprobing}).
 
-\section{Graph Generation}
+\section{Network Generation}
 \label{sec:Bgraphgeneration}
 
-Monitors in the case of this model function as normal switches with regards to packet generation and reception but perform additional recording functionality. Each monitor stores information pertaining to each packet that it generates or receives. This stored information is analogous to a traceroute of the packet's path through the network; a list of routers that the packet has passed through. The monitors also store the total time taken by the packet for it’s traversal and the source and destination IP address.\par
-In the generated graph is undirected and all edges represent links between machines (router, switches or monitors). For simplicity each distinct pair of nodes is only by linked by a single edge. However, multiple physical links between a pair of machines occur in the real world. The single edge we use is a virtual aggregation of all of these links, representing their total cumulative throughput. \par
-Each node within the graph is a representation of a physical piece of networking hardware, either a router or switch. These are simplified abstractions of their real world analogies. The simplifications used are enumerated in the previous section.\par
-The current network generation strategy follows that of the Erdős–Rényi (ER) model; this was introduced by \cite{gilbert_random_1961} and later that year revisited in “On Random Graphs I.” by the model’s eponymous author pair \cite{erdos_random_1959}. This random graph generation is characterised by each node in a graph being connected to each other node with a predefined probability of $p$, that is for a graph $N$ with $n>1$ nodes and a connectivity probability $0\leq p\leq 1$, $G=f(n,p)$.\par
-This random graph generation strategy is simple. It has several problems, however, when used to generate graphs analogous to computer networks. The most prominent shortcomings are in the node degree distribution and presence of so called ‘isolated nodes’. A key underlying assumption of the ER model is that each edge between two nodes is equally likely to occur within a graph. The natural consequence of this assumption is that the distribution of node degree’s (number of connected edges) within the graph approximates a Poisson distribution (\cite{albert-laszlo_scale-free_2003}). Such random networks are referred to as exponential networks as the probability that a node is connected to $n$ other nodes decreases exponentially as $n\to\infty$.\par
-Complex networks however have been observed to not follow properties of exponential networks . Rather, irrelevant of age, function or scope complex network converge to a similar architecture as shown in \cite{albert_diameter_1999}’s mapping of the world wide web . This network architecture has been dubbed as scale-free and is characterised by the distribution of node degree following a power-law where the probability of a node having $k$ edges $P(k)$  is proportional to $\frac{1}{kn}$ for a network of $n$ nodes. This property is present in graphs generated using the Barabási–Albert (BA) model, as well as the Watts–Strogatz model; these generation techniques among others are further discussed in \cref{cha:background}.\par
-As the network being generated and analyzed continues to increase in size we expect its behaviour and structure to become increasingly complex. Given this complex nature the scale-free property of graph generation is highly desirable for generation of pseudo-realistic networks.
+In an undirected network graph all edges represent links between machines (router, switches or monitors). For simplicity, each distinct pair of nodes is only by linked by a single edge. However, multiple physical links occur between pairs of machines in the real world. Therefore, the single edge we use is a virtual aggregation of all these links, representing their total cumulative throughput. \par
+Each node within the graph is a representation of a physical piece of networking hardware - either a router or switch. These are simplified abstractions of their real-world analogues. The simplifications used in this abstraction are enumerated in the previous section.\par
+Previous network generation strategies follows that of the Erdős–Rényi (ER) model. This was introduced in “On Random Graphs I.” by the model’s eponymous author pair \cite{erdos_random_1959}. This random graph generation is characterised by each node in a graph being connected to each other node with a predefined probability of $p$, that is for a graph $N$ with $n>1$ nodes and a connectivity probability $0\leq p\leq 1$, $G=f(n,p)$.\par
+This random graph generation strategy is relatively simple. It has several problems, however, when used to generate graphs analogous to computer networks. The most prominent shortcomings are in the node degree distribution and the presence of ‘isolated nodes’. A key underlying assumption of the ER model is that each edge between two nodes is equally likely to occur within a graph. The natural consequence of this assumption is that the distribution of node degrees (number of connected edges) within the graph approximates a Poisson distribution (\cite{albert-laszlo_scale-free_2003}). Such random networks are referred to as exponential networks, as the probability that a node is connected to $n$ other nodes decreases exponentially as $n\to\infty$.\par
+Complex networks, however, have been observed to not follow properties of exponential networks. Rather, irrespective of age, function, or scope, complex network converge to a similar architecture as shown in the mapping of the world wide web (by \cite{albert_diameter_1999}). This network architecture has been dubbed as scale-free, and is characterised by the distribution of node degree following a power-law whereby the probability of a node having $k$ edges $P(k)$  is proportional to $\frac{1}{kn}$ for a network of $n$ nodes. This property is present in graphs generated using the Barabási–Albert (BA) model, as well as the Watts–Strogatz model.\par
+As the network being generated and analysed continues to increase in size we expect its behaviour and structure to become increasingly complex. Given this complex nature, the scale-free property of graph generation is highly desirable for generation of pseudo-realistic networks.
+
+\subsection{Monitor Placement}
+\label{ssec:Bmonitorplacement}
+% Briefly discuss Ma's monitor placement algorthim, leave most of the heavy lifting to Ashley's paper.
 
 \section{Routing Mechanisms}
 \label{sec:Broutingmechanisms}
 
-    In this work we use the term probe packets to denote UDP packets sent between monitors. Probe packets differ from other traffic as they are transferred from and to unique ports on the sending and receiving switch. Each individual probe packet is sent along a pre-computed \emph{probe path} through the network. A probe path is a directed path through a series of routers which, unless dropped due to a router's buffer being full, the packet is guaranteed to take by underlying routing protocols. Each probe path is uniquely identified by the monitors and routers that it traverses. The probe path for a given packet is described by the packet's respective transmission/reception port. Additionally, explicit notation in the data section of the packet denotes it's probe path. We elaborate further on the technical representation of probe paths in \cref{sec:Mnetworkprobing}.\par
-    
-    Because we assume a priori knowledge of the network's topology, the set of probe paths is determined before beginning to collect end-to-end measurements. At the beginning of the measurement interval each monitor sends an allocated number of probe packets along each probe path. For each packet a monitor sends it stores the time ($t^s$) and probe path the packet was sent along. Upon reception of the packet, the destination monitor records the time of reception ($t^r$) and packet's probe path, as illustrated in \ref{fig:pptransmission}. 
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=5cm]{figs/background/probe_transmission.png}
-        \caption[Illustration of probe packet transmission between two monitors]{Illustration of probe packet transmission between two monitors \protect\cite{he_fisher_2015}}
-        \label{fig:pptransmission}
-    \end{figure}
-    \noindent Given $n$ probes are sent on a path we are then able to find the mean end-to-end travel time of a packet on that path by: \[\text{travel time}=\frac{\sum_{i=1}^nt_i^r - t_i^s}{n}\] where $t_i^s$, $t_i^r$ denote the time the $i$th packet on that path is sent and received respectively. This calculation is trivial within small networks as there exist only a small number of probe paths and the measurement interval (and therefore $n$) required for reliable metrics is brief. To account for clock synchronization discrepancies between distributed monitors in this calculation we introduce the concept of packet delay variation (PDV) tomography for analysis in \cref{sec:Mnetworkprobing} \par
+In this work we use the term \textit{probe packets} to denote UDP packets sent between monitors. Probe packets differ from other traffic as they are transferred from and to unique ports on the sending and receiving switch. Each individual probe packet is sent along a pre-computed \emph{probe path} through the network. A probe path is a directed path through a series of routers which, unless dropped due to a router's buffer being full, the packet is guaranteed to take by the underlying routing protocols. Each probe path is uniquely identified by the monitors and routers that it traverses. The probe path for a given packet is described by the packet's respective transmission/reception port. Additionally, explicit notation in the data section of the packet denotes it's probe path. We elaborate further on the technical representation of probe paths in \cref{sec:Mnetworkprobing}.\par
+Because we assume a priori knowledge of the network's topology, the set of probe paths is determined before beginning to collect end-to-end measurements. At the beginning of the measurement interval, each monitor sends an allocated number of probe packets along each probe path. For each packet a monitor sends it stores the time ($t^s$) and probe path the packet was sent along. Upon reception of the packet, the destination monitor records the time of reception ($t^r$) and packet's probe path, as illustrated in \ref{fig:pptransmission}. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=5cm]{figs/background/probe_transmission.png}
+    \caption[Illustration of probe packet transmission between two monitors]{Illustration of probe packet transmission between two monitors \protect\cite{he_fisher_2015}}
+    \label{fig:pptransmission}
+\end{figure}
+\noindent Given $n$ probes are sent on a path we are then able to find the mean end-to-end travel time of a packet on that path by \cref{eq:traveltime}.
+\begin{equation}
+    \label{eq:traveltime}
+    \text{travel time}=\frac{\sum_{i=1}^nt_i^r - t_i^s}{n}
+\end{equation}
+where $t_i^s$, $t_i^r$ denote the times, respectively, that the $i$th packet on that path is sent and received. This calculation is trivial within small networks, as there exist only a small number of probe paths, and the measurement interval (and therefore $n$) required for reliable metrics is brief. To account for clock synchronization discrepancies between distributed monitors in this calculation we introduce (in \cref{sec:Mnetworkprobing}) the concept of packet delay variation (PDV) tomography a a candidate for analysis.\par
 
-    Let $\mathcal{M}\subset N$ (with $m=|\mathcal{M}|$) be a set of monitors, $P$ denote the set of all possible probe paths, and $|P|$ be the number of potential probe paths. $P$ is then equal to all possible non cyclic paths between each pair of monitors. A naive approach of calculating all probe paths is therefore of the order $\mathcal{O}(m^m)$. As the network grows in size this super-exponential growth of possible probe paths requires a more discerning approach to probe path selection. As the ultimate goal of our end-to-end probing is to enable identifiability of each router within the network we need only ensure the chosen set of probe paths is sufficient for this identification.\par
-    
-    Unique router identification via probing is dependant on the flexibility afforded by the probe packet routing mechanism, we employ terminology from \cite{he_network_2021} and split these routing mechanisms into 4 groups: \begin{itemize}
-        \item Uncontrollable routing (UR)
-        \item Controllable cycle-free routing (CFR)
-        \item Controllable cycle-based routing (CBR)
-        \item Arbitrarily controllable routing (ACR)
-    \end{itemize}
-    These mechanisms, in conjunction with $M$, dictate the possible paths probe packets can take through the network. Therefore $P$ and $M$ together define whether each router is identifiable.\par
-    Uncontrollable routing refers to when P is limited to only paths that the background traffic's link-state routing protocol establishes, given the dynamic nature of this routing we are unable to established a fixed $P$ violating the assumptions of our probe path routing, as such we will not consider UR in our analysis. Previous work in \cite{barnes_stochastic_2020} has established that in a stochastic routing network using UR for probe paths router identifiability cannot be established and a prohibitively computationally expensive Markov Chain Monte Carlo (MCMC) (\cite{dellaportas_bayesian_2002}) based estimation method must be used instead.\par
-    
-    CBR represents routing restrictions in an all optical (\cite{ahuja_srlg_2011}) network. Under CBR a packet may traverse a router any number of times but only traverse each link once. CFR represents routing restrictions in a multi protocol label switching (MPLS) network (\cite{rosen_multiprotocol_2001}). Under CFR a packet may only traverse every router and link at most once.\par
-    Arbitrarily controllable routing represents the ideal case where a probe packet traverse every link and router as many times as desired. This form of routing is analogous to that afforded by SDN and other strict source routing architectures (\cite{university_of_southern_california_darpa_1981}, \cite{open_networking_foundation_openflow_2015}). ACR allows for complete router identifiability using only a single arbitrarily placed monitor (\cite{he_network_2021}).\par
-    Due to the triviality of router identification and limited SDN use cases in real world networks (\cite{jarschel_interfaces_2014}) under ACR we do not consider ACR in our analysis. In contrast, CFR and CBR are widely used in the real world and provide an interesting set of limitations while still allowing for unique router identifiable (\cite{ahuja_srlg_2011}, \cite{thomas_ldp_2001}). However, as routing restrictions under CBR are relaxed compared to those under CFR and for any topologies $max(P)|CFR \subseteq max(P)|CBR$. We therefore focus on CFR in our analysis.\par
+Let $\mathcal{M}\subset N$ (with $m=|\mathcal{M}|$) be a set of monitors, $P$ denote the set of all possible probe paths, and $|P|$ be the number of potential probe paths. $P$ is then equal to all possible non cyclic paths between each pair of monitors. A naive approach of calculating all probe paths is therefore of the order $\mathcal{O}(m^m)$. As the network grows in size, this super-exponential growth of possible probe paths requires a more discerning approach to probe path selection. As the ultimate goal of our end-to-end probing is to enable identifiability of each router within the network, we need only ensure the chosen set of probe paths is sufficient for this identification.\par
+
+Unique router identification via probing is dependent on the flexibility afforded by the probe packet routing mechanism. We employ terminology from \cite{he_network_2021} and split these routing mechanisms into 4 groups: \begin{itemize}
+    \item Uncontrollable routing (UR)
+    \item Controllable cycle-free routing (CFR)
+    \item Controllable cycle-based routing (CBR)
+    \item Arbitrarily controllable routing (ACR)
+\end{itemize}
+These mechanisms, in conjunction with $M$, dictate the possible paths probe packets can take through the network. Therefore $P$ and $M$ together define whether each router is identifiable.\par
+Uncontrollable routing refers to situations where $P$ is limited to paths established by the background traffic's link-state routing protocol. Given the dynamic nature of this routing, we are unable to establish a fixed $P$. This violates the assumptions we have laid out for our probe path routing. Additionally, previous work in \cite{barnes_stochastic_2020} has established that, in stochastic UR networks, router identifiability cannot be established. A prohibitively expensive (in terms of computation) Markov Chain Monte Carlo (MCMC) (\cite{dellaportas_bayesian_2002}) based estimation method must instead be used to identify nefarious routers. Therefore, we will not consider UR in our analysis.\par
+CBR represents routing restrictions in an all optical (\cite{ahuja_srlg_2011}) network. Under CBR a packet may traverse a router any number of times but only traverse each link once. CFR represents routing restrictions in a multi protocol label switching (MPLS) network (\cite{rosen_multiprotocol_2001}). Under CFR a packet may only traverse every router and link at most once.\par
+Arbitrarily controllable routing represents the ideal case where a probe packet traverse every link and router as many times as desired. This form of routing is analogous to that afforded by SDN and other strict source routing architectures (\cite{university_of_southern_california_darpa_1981}, \cite{open_networking_foundation_openflow_2015}). ACR allows for complete router identifiability using only a single arbitrarily placed monitor (\cite{he_network_2021}).\par
+Due to the triviality of router identification and limited SDN use cases in real world networks (\cite{jarschel_interfaces_2014}) under ACR we do not consider ACR in our analysis. In contrast, CFR and CBR are widely used in the real world and provide an interesting set of limitations while still allowing for unique router identifiable (\cite{ahuja_srlg_2011}, \cite{thomas_ldp_2001}). However, as routing restrictions under CBR are relaxed compared to those under CFR and for any topologies $max(P)|CFR \subseteq max(P)|CBR$. We therefore focus on CFR in our analysis.\par
 
 \section{Network Tomography}
 \label{sec:Bnetworktomography}
@@ -51,9 +57,9 @@ In this section we describe how network tomography is used for network analysis.
 
 \subsection{Inferring Node Metrics}
 \label{ssec:B4routerexample}
-Consider a 4 router network with monitored switches at routers 0 and 3 as shown in \cref{fig:4routereg}.
-
-\begin{figure}[H]
+Consider a 4 router network with monitored switches at routers $r_0$ and $r_3$ as shown in \cref{fig:4routereg}. Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at any time step.\par
+From \cref{fig:4routereg} we can see that from $s_{0,0}$ to $s_{3,0}$ there are two possible paths a packet may take: $r_0\rightarrow r_1\rightarrow r_3$ and $r_0\rightarrow r_2\rightarrow r_3$. Let these paths be $p_0$ and $p_1$ respectively. Suppose we send 2,000 probe packets between $s_{0,0}$ and $s_{3,0}$ with the probability $\phi_0$ and $\phi_1$ (where $\phi_0+\phi_1=1$) of each packet being sent along $p_0$ or $p_1$ respectively.\par
+\begin{figure}[t]
     \centering
     \tikzsetnextfilename{4routertopology}
     \begin{tikzpicture}[
@@ -89,10 +95,7 @@ Consider a 4 router network with monitored switches at routers 0 and 3 as shown 
     \caption{Example 4 router network.}
     \label{fig:4routereg}
 \end{figure}
-
-Let $r_1$ be a nefarious router with a $20\%$ chance of a delaying a packet at any time step. From \cref{fig:4routereg} we can see that from $s_{0,0}$ to $s_{3,0}$ there are two possible paths a packet may take: $r_0\rightarrow r_1\rightarrow r_3$ and $r_0\rightarrow r_2\rightarrow r_3$, let these paths be $p_0$ and $p_1$ respectively. Suppose we send 2,000 probe packets between $s_{0,0}$ and $s_{3,0}$, let $\phi_0$ and $\phi_1$ be the probability of a packet being sent along $p_0$ or $p_1$ respectively.\par
-At the end of the measurement interval, the difference in time from each packet being sent from $s_{0,0}$ and the received by $s_{3,0}$ is recorded to calculate the delay of each packet. Ignoring background traffic for illustrative proposes we obtain the delay histograms shown in \cref{fig:ppdelayhist}. Visually we can confirm our expectation of the path with the delaying router $r_1$ having a heavier tailed distribution.\par
-\begin{figure}[H]
+\begin{figure}[t]
     \begin{subfigure}[b]{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/intro/p0_delayhist.png}
         \caption[]{Delays over $p_0$.}
@@ -104,15 +107,16 @@ At the end of the measurement interval, the difference in time from each packet 
     \caption{Histograms of probe path level delays for a 4 router ring network.}
     \label{fig:ppdelayhist}
 \end{figure}
+At the end of the measurement interval, the difference in time from each packet being sent from $s_{0,0}$ and received by $s_{3,0}$ is recorded to calculate the delay of each packet. Ignoring background traffic for illustrative proposes we obtain the delay histograms shown in \cref{fig:ppdelayhist}. Visually we can confirm our expectation of the path with the delaying router $r_1$ having a heavier tailed distribution.\par
 \noindent From these distributions we compute the mean and variance of the delay for each path, obtaining the values shown in \cref{tbl:4routerstats}. We observe an increase of almost 200\% in delay variance for $p_0$ containing the nefarious router $r_1$. This kind of analysis however is not sufficient to enable distinction of all routers within a network. Even in this minimal example we have explored, $r_0$ and $r_3$ exists on both $p_0$ and $p_1$. Therefore, if either $r_0$ or $r_3$ were nefarious they would impact both path measurements equally.\par
-To demonstrate this we take the average PDA of $p_0$ and $p_1$, with $r_0$-$r_3$ being nefarious, over 50 simulations (each 10,000 time-steps). Results are shown in \cref{fig:probepathpdas}. From this it is clear that both $p_0$ and $p_1$ and equally impacted by nefarious delaying at $r_0$ or $r_3$, as such, this nefarious behaviour is undetectable via network tomography.\par
-\begin{figure}[H]
+To demonstrate this, for each router $r_0$-$r_3$ being nefarious, we take the average PDA of $p_0$ and $p_1$ over 50 simulations (each 10,000 time-steps). Results are shown in \cref{fig:probepathpdas}. From this it is clear that both $p_0$ and $p_1$ and equally impacted by nefarious delaying at $r_0$ or $r_3$, as such, this nefarious behaviour is undetectable via network tomography.\par
+To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics.
+\begin{figure}[t]
     \centering
     \includegraphics{figs/background/path_pdas.png}
     \caption{Probe path PDAs when each router is nefarious.}
     \label{fig:probepathpdas}
 \end{figure}
-To resolve this problem we extend this method with node identification techniques in \cref{sec:Mnetworkprobing} to enable computation of router level packet delay statistics.
 \begin{table}[H]
     \centering
     \begin{tabular}{@{}ccc@{}}
@@ -194,7 +198,7 @@ We characterise networks as a binary $|R|\times|R|$ adjacency matrix $A$ where $
         0 & 0 & 0 & 1 & 1 & 0 \\\end{bmatrix}
 \end{equation}
 
-On the practicality front it interfaces seamlessly with prefab modules such as those provided by iGraph and NS3 as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
+On the practicality front, it interfaces seamlessly with prefab network simulation packages in python as well as our custom implementations of Dijkstra's algorithm. Consistent use of adjacency matrices for graph representation throughout all modules within the produced code base also allow for generalised use of the code in future work. On the analytical front this representation lends itself to computation of probe path matrices which are crucial in our tomographic method.\par
 As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabilities within existing network models to treat routing of probe packets from monitor nodes via probe paths uniquely from background traffic under CFR conditions. We represent the set $P^*$ of probe paths used with a $|P^*|\times |R|$ matrix where each row vector denotes routers within that probe path i.e. if the $j$th column of the $i$th row $= 1$ then router $j$ is present on probe path $i$ (0 otherwise). For the network represented in \cref{eq:6routeradjmatrix} we can denote a $P^*$ with a single probe path ($p_0$) traversing routers $r_0,r_1,r_4,r_5$ as:
 \begin{equation*}
     P^*=\begin{bmatrix}
@@ -203,7 +207,7 @@ As outlined in \cref{sec:Broutingmechanisms} we leverage assumed routing capabil
 \end{equation*}
 
 We note that there are multiple distinct paths which traverse the routers in $P^*$. As we only consider queuing delays at routers, irrespective of which link the traffic arrives on, the ambiguity in which order the packets traverse these routers does not impact our analysis.\par
-However, such a choice a $P$ does not allow for any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with full column rank, such as:
+However, such a choice a $P$ does not allow for any router to be uniquely identified. To uniquely identify $r_1,r_2,r_3,r_4$ we require the probe path matrix with column rank (for the column corresponding to each of these routers), such as:
 \begin{equation}
 \label{eq:6routerppaths}
     P^*=\begin{bmatrix}
@@ -231,7 +235,8 @@ Using $P^*$ from \cref{eq:6routerppaths} we are able to compute a vector contain
     \end{split}
 \end{align}\par
 As discussed in \cref{sec:Mnetworkprobing} end-to-end metrics are collected over probe paths for the duration of the measurement interval. It follows from \cref{eq:r1computation} that we are able to use the observed values from our probing over paths 3 and 4 to infer properties of $r_1$. In the case of a fixed delay, in the vein of \cite{ma_efficient_2013}, we would calculate the difference in the mean of delay measurements from probe path 3 and probe path 4 to infer the delay of $r_1$. However as we aim to solve this problem for stochastic queuing delays the solution requires a more nuanced approach, we elaborate on our approach in \cref{sec:Mnetworkprobing}.\par
-Note that given the network in \cref{eq:6routeradjmatrix} there exists no set $P' \subseteq P$ that allows for unique identification of $r_0$ or $r_5$ due to the CFR routing mechanism imposed. We refer to such routers within a graph that cannot be identified under the imposed routing mechanism onward as "unidentifiable". The set containing all unidentifiable routers within a network is denoted as $R_U$ and similarly the set of identifiable routers is denoted as $R_I$, therefore the set of all routers $R = R_I\cup R_U$.\par
+Note that as the matrix in \cref{eq:6routeradjmatrix} does not have full column rank we are unable to uniquely identify each router. Specifically, there is no linear combination of rows which results in a vector with a 1 in only the first or last column. Therefore, given the network in \cref{fig:6routersample}, there exists no set $P' \subseteq P$ that allows for unique identification of $r_0$ or $r_5$. Note that this would not necessarily be the case if a probe routing restriction other than CFR were used.\par
+We refer to such routers within a graph, that cannot be identified under the imposed routing mechanism, onward as \textit{unidentifiable}. The set containing all unidentifiable routers within a network is denoted as $R_U$ and similarly the set of identifiable routers is denoted as $R_I$, therefore the set of all routers $R = R_I\cup R_U$.\par
 Given this, we ignore $R_U$ and for $A$ in \cref{eq:6routeradjmatrix} we compute a vector containing each $r \in R_I$ following conventions in \cref{eq:r1computation} to give the set of router level metrics $\mathcal{M}$:
 \begin{equation*}
     M = 
@@ -251,46 +256,16 @@ Resulting from this representation we define router identifiability succinctly a
 
 \subsection{Picking Probe Paths Parsimoniously}
 \label{ssec:Bparsppselection}
-
-With a scope limited to tree network topologies \cite{lawrence_network_2006} focused on deriving an algorithm for selection of a set of probe paths $P^*$ for network tomography. This algorithm selects the minimal set of probe paths that allow for complete node identifiability. Such a minimal set is desirable as when probing we allocate probe packets over each path $p\in P^*$, reducing the amount of information we gain about a path proportionally to the number of probe allocated to it.\par
-To ensure our inference is robust and has a maximal CRB (discussed in \cref{ssec:Bcrb}) we aim to gain as much data over the measurement interval as possible and adopt a parsimonious approach where we aim to select a $P^*$ s.t. \cref{eq:minpp} holds where $P$ is the set of all possible probe paths.
-\begin{equation}
+With a scope limited to tree network topologies, \cite{lawrence_network_2006} focused on deriving an algorithm for the selection of a set of probe paths $P^*$ for network tomography. This algorithm selects the minimal set of probe paths that allows for complete node identifiability. Such a minimal set is desirable, as when probing we allocate probe packets over each path $p\in P^*$. The amount of information we gain about a path is therefore proportionally to the number of probes allocated to it.\par
+To ensure our inference is robust and has a maximal CRB (discussed in \cref{ssec:Bcrb}), we aim to gain as much data over the measurement interval as possible. As such, we adopt a parsimonious approach whereby we aim to select the smallest possible $P^*$ from the set of all possible probe paths $P$ s.t.:
+\begin{equation*}
 \label{eq:minpp}
     I(P^*) = I(P)
-\end{equation}
-\par
-The problem of rigorously minimizing $P^*$ has been shown to be NP-hard by \cite{zheng_minimizing_2013}. However polynomial time solutions using a heuristic based approach for an approximation of a minimal $P*$ in general topologies have been derived previous and three notable methods have been developed: Zheng's algorithm (\cite{zheng_minimizing_2013}), Evolutionary Sampling algorithm (\cite{rahali_unicast_2019}), and Greedy-Min-Cost-Rank (\cite{tootaghaj_parsimonious_2018}). As the Evolutionary Sampling algorithm (ESA) was developed under the assumption of central monitors where all probe path metrics are compiled contrasting our assumption of observability of all monitors we do not consider ESA.\par
-\begin{algorithm}
-    \KwData{The linear system $L$ and parameter $\alpha$}
-    \KwResult{Minimal set of probe paths $P^*$}
-    
-    \For{each node}{
-        Calculate $\alpha$ solutions using $A$ and $L$\;
-    }
-    Construct the extended bipartite graph $G'=(U,V,E)$ with the selected solutions\;
-    $P^* \gets \varnothing$ \;
-    $C \gets \varnothing$ \;
-    \While{$\exists\ n \in V_1,\ n\not\in C$}{
-        $u_{selected} \gets u_x\in U_1\ \text{with max}\left(\frac{|newV2|}{|newpaths|}\right)$ where: $newV2 = v_i\in V_2 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
-        $C \gets C + u_{selected}$\;
-        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
-        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
-            $P^* \gets P^* + p_i$\;
-        }
-    }
-    \While{$\exists\ n \in V_2,\ n\not\in C$}{
-        $u_{selected} \gets u_x\in U_1\cup U_2\ \text{with max}\left(\frac{|newV1|}{|newpaths|}\right)$ where: $newV1 = v_i\in V_1 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
-        $C \gets C + u_{selected}$\;
-        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
-        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
-            $P^* \gets P^* + p_i$\;
-        }
-    }
-    Remove all replaceable probing paths from set $P^*$ using $L$\;
-    \caption{Zheng's minimal probe path selection algorithm}
-    \label{alg:zhengs}
-\end{algorithm}
-
+\end{equation*}
+Where $I(P)$ denotes the Fisher information (see \cref{ssec:Bfisherinformation}) obtained with the set of probe paths $P$.\par
+The problem of rigorously minimizing $P^*$ to solve \cref{eq:minpp} has been shown to be NP-hard by \cite{zheng_minimizing_2013}. However, polynomial time solutions using a heuristic based approach for an approximation of a minimal $P*$ in general topologies have been derived previously. Three notable methods have been developed: Evolutionary Sampling algorithm (\cite{rahali_unicast_2019}), Greedy-Min-Cost-Rank (\cite{tootaghaj_parsimonious_2018}), and Zheng's algorithm (\cite{zheng_minimizing_2013}).\par
+The Evolutionary Sampling algorithm (ESA) was developed under the assumption of central monitors where all probe path metrics are compiled. This contrasts our assumption of observability of all monitors. Therefore, we do not consider ESA.\par
+Both Greedy-Min-Cost-Rank (GMCR) and Zheng's algorithm minimize the probing cost in a context analogous to ours. However, these approaches differ in their respective definitions of probing cost. In GMCR the probing cost is the total number of hops taken by probe packets or $\forall p_i\in P^*,\ \sum |p_i|$.In contrast, Zheng's algorithm defines the probing cost as $|P^*|$.\par
 \captionsetup{justification=centering}
 \begin{figure}[H]
     \centering
@@ -348,29 +323,66 @@ The problem of rigorously minimizing $P^*$ has been shown to be NP-hard by \cite
     \caption[Extended bipartite model of the network for probe path selection.]{Extended bipartite model of the network for probe path selection.}
     \label{fig:ebgm}
 \end{figure}
-Both Greedy-Min-Cost-Rank (GMCR) and Zheng's algorithm minimize the probing cost in a context analogous to ours, however the key difference is in definition of probing cost. In Zheng's algorithm the probing cost is defined as $|P^*|$ whereas in GMCR it is the total number of 'hops' or nodes in all paths $\forall p_i\in P^*,\ \sum |p_i|$. Although developed for the purpose of link tomography \cite{zheng_minimizing_2013} note it's applicability to node tomography we therefore adopt Zheng's algorithm \cref{alg:zhengs} for it's alignment with our goal of minimizing $|P^*|$.\par
-The core idea behind Zheng's algorithm is quantifying the contribution of a probe path to node identifiability and then adopting a greedy selection approach until all nodes are identifiable. The criteria used for the greedy is based on a novel extended bipartite graph model (EBGM) shown in \cref{fig:ebgm}.\par
-This graph model groups network nodes into $V_1$ or $V_2$ based on if the node is identifiable or not. The group $U_1$ contains sets of probe paths that enable identification of a node in $V_1$, with an edge connecting a node in $V_1$ and $U_2$ if the set of paths in $U_2$ enables identification of $V_1$. Similarly $U_2$ contains probe paths which traverse a node in $V_2$, with an edge connecting a node in $V_2$ and $U_2$ if the path traverses that node.
+\begin{algorithm}[H]
+    \KwData{The linear system $L$ and parameter $\alpha$}
+    \KwResult{Minimal set of probe paths $P^*$}
+    
+    \For{each node}{
+        Calculate $\alpha$ solutions using $A$ and $L$\;
+    }
+    Construct the extended bipartite graph $G'=(U,V,E)$ with the selected solutions\;
+    $P^* \gets \varnothing$ \;
+    $C \gets \varnothing$ \;
+    \While{$\exists\ n \in V_1,\ n\not\in C$}{
+        $u_{selected} \gets u_x\in U_1\ \text{with max}\left(\frac{|newV2|}{|newpaths|}\right)$ where: $newV2 = v_i\in V_2 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
+        $C \gets C + u_{selected}$\;
+        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
+        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
+            $P^* \gets P^* + p_i$\;
+        }
+    }
+    \While{$\exists\ n \in V_2,\ n\not\in C$}{
+        $u_{selected} \gets u_x\in U_1\cup U_2\ \text{with max}\left(\frac{|newV1|}{|newpaths|}\right)$ where: $newV1 = v_i\in V_1 - C,\ \{v_i, u_x\}\in E$ and $newpaths = p_i\in u_x,\ p_i \not\in P_s$\;
+        $C \gets C + u_{selected}$\;
+        $C \gets v_i \in V_1\cup V_2,\ \{v_i, u_{selected}\}\in E$\;
+        \For {$p_i \in u_{selected}, p_i \not\in P^*$}{
+            $P^* \gets P^* + p_i$\;
+        }
+    }
+    Remove all replaceable probing paths from set $P^*$ using $L$\;
+    \caption{Zheng's minimal probe path selection algorithm}
+    \label{alg:zhengs}
+\end{algorithm}
+\noindent Therefore, we adopt Zheng's algorithm (shown in \Cref{alg:zhengs}) for its alignment with our goal of minimizing $|P^*|$. We note that Zheng's algorithm was initially developed for the purpose of link tomography. However, \cite{zheng_minimizing_2013} highlight the applicability of their approach to node tomography, validating our adoption of the method.\par
+The core idea behind Zheng's algorithm is quantifying the contribution of a probe path to node identifiability and then adopting a greedy selection approach until all nodes are identifiable. The criteria used for this greedy selection approach is based on a novel extended bipartite graph model (EBGM), shown in \cref{fig:ebgm}.This graph model groups network nodes into $V_1$ or $V_2$ based on whether the node is identifiable.\par
+The group $U_1$ contains sets of probe paths that enable identification of a node in $V_1$. An edge $\{v_i, u_x\} \in E$ (where $E$ is the set of all edges) connects a node in $V_1$ and $U_2$ if the set of paths in $U_2$ enables identification of $V_1$. Similarly $U_2$ contains probe paths which traverse a node in $V_2$, with an edge connecting a node in $V_2$ and $U_2$ if the path traverses that node.\par
+For selection of the minimal $P^*$, while there still exists nodes which are not identifiable in $V_1$ or not traversed in $V_2$, the path with a maximum heuristic value is added to $P^*$. This heuristic value is computed in lines 8 and 16 of \Cref{alg:zhengs}.\par
 
 \section{Parameter Estimation}
 \label{sec:Bparameterestimation}
 
-In this section we define and explain statistical concepts underpinning optimisations to our network tomography technique we discuss in \cref{sec:Boptimization}. We note that a network as we have defined it is composed of only nodes (routers, switch and monitors) and physical uniform links, inferences made about a network are analogous to inferences of nodes and links. These concepts extend on statistical methods in the context of network science form \cite{meng_method_2016}, \cite{he_fisher_2015}, and \cite{he_network_2021}, re-framing them for application in the context of tomographic identification of nefarious routers.\par
-The first of these key concepts is Maximum Likelihood Estimation (MLE) to determine the node and link level parameters which give the highest chance of having observed the given packet delays and losses at monitor nodes. The second is the notion of Fisher Information to quantify both the amount of knowledge we have about the underlying network and the accuracy of our MLE of node and link parameters. We finally summarise the introduced concepts and concretely qualify their use in the field of network tomography.
+In this section we define and explain statistical concepts underpinning optimisations to our network tomography technique (as discussed in \cref{sec:Boptimization}). We note that a network, as we have defined it, is composed of only nodes (routers, switch and monitors) and physical uniform links. Inferences made about a network are analogous to inferences of nodes and links. These concepts expand upon the statistical methods framed in the context of network science (from \cite{meng_method_2016}, \cite{he_fisher_2015}, and \cite{he_network_2021}) and re-framing them for application in the context of tomographic identification of nefarious routers.\par
+The first of these key concepts is the use of Maximum Likelihood Estimation (MLE) to determine the node and link level parameters that give the highest chance of having observed the given packet delays and losses at monitor nodes. The second is the notion of using Fisher information to quantify both the amount of knowledge we have about the underlying network, and also the accuracy of our MLE for node and link parameters. Finally, we summarise the introduced concepts and concretely qualify their use in the field of network tomography.
 
 \subsection{Maximum Likelihood Estimation}
 \label{ssec:Bmle}
 
-Any complex system, such as a computer network, can be represented as a suitably complex probabilistic model which takes in a set of parameters $\vec{\theta} = \{\theta_1, \theta_2,\ldots,\theta_n\}$ where $\theta_x \in \Theta$ and $\Theta$ denotes the parameter space of all possible values $\theta$ could hold. From these parameters the system generates results we can observe $\vec{q} = \{q_1,q_2,\ldots,q_n\}$ where $q_x \in Q$, more formally we can express this generation of results as a function of the system parameters: \[f(\vec{\theta}) = \vec{q}\]
-
-As this function is probabilistic $\vec{q}$ is only an observed sample distribution from an underlying population distribution governed by the unknown $\vec{\theta}$. We therefore can invert this function representing the system and instead pose it as $\widehat{\mathcal{L}}(\vec{\theta}\ |\ \vec{q})$ where $\widehat{\mathcal{L}}$ denotes the likelihood function which gives the likelihood of observing $\vec{q}$ given a model governed by the parameters $\vec{\theta}$. Using this likelihood function we determine the most likely vector of parameters $\hat\theta$ used to generate our observations, by convention this is posed as:
+Any complex system, such as a computer network, can be represented as a suitably complex probabilistic model which takes in a set of parameters $\vec{\theta} = \{\theta_1, \theta_2,\ldots,\theta_n\}$ where $\theta_x \in \Theta$ and $\Theta$ denotes the parameter space of all possible values $\theta$ could hold. From these parameters the system generates results we can observe $\vec{q} = \{q_1,q_2,\ldots,q_n\}$ where $q_x \in Q$ and $Q$ is the set of all router queue lengths. More formally, we can express this generation of results as a function of the system parameters as:
 \begin{equation*}
+    % \label{eq:systemparams}
+    f(\vec{\theta}) = \vec{q}
+\end{equation*}
+As this function is probabilistic, $\vec{q}$ is only an observed sample distribution from an underlying population distribution governed by the unknown $\vec{\theta}$. We therefore can invert this function representing the system, and instead pose it as $\widehat{\mathcal{L}}(\vec{\theta}\ |\ \vec{q})$ where $\widehat{\mathcal{L}}$ denotes the likelihood function. This gives the likelihood of observing $\vec{q}$ given a model governed by the parameters $\vec{\theta}$. Using this likelihood function, we determine the most likely vector of parameters $\hat\theta$ used to generate our observations. By convention this is posed as:
+\begin{equation*}
+    % \label{eq:loglikihood}
     \hat\theta = \argmax_{\vec{\theta} \in \Theta} \widehat{\mathcal{L}}(\vec{\theta}\ |\ \vec{q})
 \end{equation*}
-This $\hat\theta$ is known as the maximum likelihood estimator (MLE), as the MLE relies on the argmax of $\mathcal{L}$ the variance of $\mathcal{L}$ determines how confident we are in the accuracy of our MLE reflecting the true value of $\theta$. Due to this variance's impact on the MLE we pose this w.r.t the MLE as $\VAR(\hat\theta)$. In following sections we will need to calculate the derivative of the MLE it serves to instead use the log of the likelihood function $log(\hat\theta\ |\ \vec{q})=\ln\;\mathcal{L}(\vec{\theta}\ |\ \vec{q})$, by convention $log$ is referred to as the log-likelihood. It has been proven that $\ln f(x)$ is monotonically increasing function (\cite{binmore_mathematical_1977}) meaning their maximums occur at the same point, or formally $\argmax_{\vec{\theta} \in \Theta} \mathcal{L}(\vec{\theta}\ |\ \vec{q})= \argmax_{\vec{\theta} \in \Theta} log(\hat\theta\ |\ \vec{q})$. As such we pose the MLE onwards as:
-\begin{equation}\label{eq:MLE}
+This $\hat\theta$ is known as the maximum likelihood estimator (MLE). As the MLE relies on the argmax of $\mathcal{L}$, the variance of $\mathcal{L}$ determines how confident we are that the accuracy of our MLE reflects the true value of $\theta$. Due to this variance's impact on the MLE, we pose this w.r.t the MLE as $\VAR(\hat\theta)$. In following sections we calculate the derivative of the MLE, to simplify this we take the log of the likelihood function $log(\hat\theta\ |\ \vec{q})=\ln\;\mathcal{L}(\vec{\theta}\ |\ \vec{q})$. By convention $log$ is used to referered to the log-likelihood.\par
+It has been proven that $log f(x)$ is monotonically increasing function (\cite{binmore_mathematical_1977}) meaning the maximum of $f(x)$ and $\ln f(x)$ occur at the same point. Formally, $\argmax_{\vec{\theta} \in \Theta} \mathcal{L}(\vec{\theta}\ |\ \vec{q})= \argmax_{\vec{\theta} \in \Theta} log(\hat\theta\ |\ \vec{q})$. As such we pose the MLE onwards as:
+\begin{equation*}
+    % \label{eq:MLE}
     \hat\theta = \argmax_{\vec{\theta} \in \Theta} log(\vec{\theta}\ |\ \vec{q})
-\end{equation}
+\end{equation*}
 Note that we assume that the MLE is unbiased, meaning that for any value of $\theta$ in a system, the expectation of $\hat\theta=\theta$ or more formally:
 \begin{equation*}
     \EX(\hat\theta - \theta\ |\ \theta) = 0
@@ -380,7 +392,10 @@ Note that we assume that the MLE is unbiased, meaning that for any value of $\th
 \subsection{Fisher Information Matrices}
 \label{ssec:Bfisherinformation}
 
-To understand the multidimensional case of a matrix one must first understand the single dimensional case, in this case the amount of information a single continuous random variable $X$ contains about the parameter $\theta$ governing its distribution is known as its Fisher information $I(\theta)$. This governance of $\theta$ of $X$ can be expressed as the parametric probability distribution function (PDF) $f(X\ |\ \theta) = y$ where $y$ is the value of the function we observe. From this we define $f_{X\,|\,\theta}(y) = \probP(y\ |\ f(X|\theta))$ or intuitively the probability of observing the value $y$ from $X$ given the parameter $\theta$. The Fisher information is simply a measure of how accurately a single observation $y$ or more typically a set of observations $\vec{y}$ determines $\theta$. For example consider two Gaussian PDFs: $a = \mathcal{N}(X\ |\ \vec{\theta}_a)$ and $b = \mathcal{N}(X\ |\ \vec{\theta}_b)$ where $\vec{\theta}_a = \{\mu=0, \sigma^2=10\}$ and $\vec{\theta}_b = \{\mu=0,\sigma^2=0.5\}$. Plots of the log-likelihood function for a set of $n$ observations $\vec{y}$ from a and b are given in \cref{fig:loglikelihoods} a and b respectively.
+To understand the multidimensional case of a matrix one must first understand the single dimensional case. In this case the amount of information a single continuous random variable $X$ contains about the parameter $\theta$ governing its distribution is known as its Fisher information $I(\theta)$. This governance of $\theta$ of $X$ can be expressed as the parametric probability distribution function (PDF) $f(X\ |\ \theta) = y$ where $y$ is the value of the function we observe.\par
+From this we define $f_{X\,|\,\theta}(y) = \probP(y\ |\ f(X|\theta))$ or intuitively the probability of observing the value $y$ from $X$ given the parameter $\theta$. The Fisher information is simply a measure of how accurately a single observation $y$ (or more typically a set of observations $\vec{y}$) determines $\theta$. For example, consider two Gaussian PDFs: $a = \mathcal{N}(X\ |\ \vec{\theta}_a)$ and $b = \mathcal{N}(X\ |\ \vec{\theta}_b)$ where $\vec{\theta}_a = \{\mu=0, \sigma^2=10\}$ and $\vec{\theta}_b = \{\mu=0,\sigma^2=0.5\}$. Plots of the log-likelihood function for each observation $y\in\vec{y}_a$ and $y\in\vec{y}_b$ are given in \cref{fig:loglikelihoods} (a) and (b) respectively.\par
+Intuitively from these plots, it is clear that the low variance case (b) enables a more accurate estimation of $\mu$, due to the steeper slopes of the log-likelihood function. We obtain these slopes by taking the derivative with respect to a model parameter ($\mu$ in this case) of the log-likelihood $\frac{\partial}{\partial\mu} log(\vec{\theta}\ |\ y),\;y\in\vec{y}$. By convention, this is known as the score function and denoted as $\mathcal{S}$. Note that, for more complex functions, where it may not be obvious, we assume this derivative exists.\par
+For completeness we show plots of $\mathcal{S}_a$, $\mathcal{S}_b$ for our $\vec{y}$ observations from (a) and (b) respectively in \cref{fig:scorefunctions}. Additionally, the distribution of each score function $\mathbb{D}(\mathcal{S})$ when evaluated at the true parameter value $\mu' = 5$ is shown in \cref{fig:scorefunctiondist}.\par
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
@@ -391,11 +406,10 @@ To understand the multidimensional case of a matrix one must first understand th
         \includegraphics[width=\textwidth]{figs/background/logprob_var_0.5.png}
         \caption[]{$log(\vec{\theta}_b\ |\ \vec{y})$}
     \end{subfigure}
-    \caption[Log-likelihood's of observations given a Gaussian distribution]{}
+    \caption{Log-likelihood's of observations given a Gaussian distribution}
     \label{fig:loglikelihoods}
 \end{figure}
-\noindent Intuitively from these plots its clear that the low variance case a enables a more accurate estimation of $\mu$ due to the steeper slopes of the log-likelihood function. We obtain these slopes by taking derivative with respect to a model parameter ($\mu$ in this case) of the log-likelihood $\frac{\partial}{\partial\mu} log(\vec{\theta}\ |\ y),\;y\in\vec{y}$ this is known as the score function by convention, we will denote it as $\mathcal{S}$, note that for more complex functions we assume this derivative exists. For the sake of completeness we show plots of $\mathcal{S}_a$, $\mathcal{S}_b$ for our $\vec{y}$ observations from a and b respectively in \cref{fig:scorefunctions} and the distribution each score function $\mathbb{D}(\mathcal{S})$ when evaluated at the true parameter value $\mu' = 5$ in \cref{fig:scorefunctiondist}.
-\begin{figure}
+\begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/background/deriv_var_10.png}
@@ -405,10 +419,10 @@ To understand the multidimensional case of a matrix one must first understand th
         \includegraphics[width=\textwidth]{figs/background/deriv_var_0.5.png}
         \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})$}
     \end{subfigure}
-    \caption[Score functions of the log-likelihood of observations over $-20<x<20$]{}
+    \caption{Score functions of the log-likelihood of observations over $-20<x<20$}
     \label{fig:scorefunctions}
 \end{figure}
-\begin{figure}
+\begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/background/deriv_dist_10.png}
@@ -418,15 +432,22 @@ To understand the multidimensional case of a matrix one must first understand th
         \includegraphics[width=\textwidth]{figs/background/deriv_dist_0.5.png}
         \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
     \end{subfigure}
-    \caption[Distribution of the score functions when evaluated at $x=\mu'$ ]{}
+    \caption{Distribution of the score functions when evaluated at $x=\mu'$}
     \label{fig:scorefunctiondist}
 \end{figure}
+The Fisher information is given by the variance of the distribution of the score functions at the true parameter value $\VAR[\mathbb{D}(\mathcal{S}_a)], \mu'$. Calculating $I(\theta)$ from $\vec{y}$ we obtain $I(\theta_a)= 1.77\text{e}-5$ and $I(\theta_b)=5.37\text{e}-3$ confirming initial observations that the low variance case of (b) provides more information.\par
+Note that as Fisher information is often used in cases where $\mu'$ is unknown, a secondary, and more common, method of calculation is to instead take the derivative of the score functions (second derivative of the log-likelihood). The Fisher information in then given by \cref{eq:Fisherinfo}.\par
 \begin{equation}\label{eq:Fisherinfo}
     I(\theta) = -\EX_{\vec{\theta}} \left[
     \frac{\partial^2}{\partial^2\mu} log(y\ |\ \vec{\theta})\right]
 \end{equation}
-The Fisher information is given by the variance of the distribution of the score functions at the true parameter value $\VAR[\mathbb{D}(\mathcal{S}_a)], \mu'$. Calculating $I(\theta)$ from $\vec{y}$ we obtain $I(\theta_a)= 1.77\text{e}-5$ and $I(\theta_b)=5.37\text{e}-3$ confirming initial observations that the low variance case of b provides more information. Note as Fisher information is often used in cases where $\mu'$ is unknown, the secondary and more common method of calculation is to instead take the derivative of the score functions (second derivative of the log-likelihood), the fisher information in then given by \cref{eq:Fisherinfo}. As in a normal distribution the 2nd derivative of the log-likelihood is always a single value we omit plots of the second derivative and it's distribution when evaluated at $\mu'$ for brevity.
-Now considering the multidimensional case of a complex system containing $X=\{x_1,x_2,\ldots,x_n\}$ random variables, each governed by a respective parameter in $\vec{\theta}=\{\theta_1,\theta_2,\ldots,\theta_n\}^T$. Let the value of a single element $x\in X$ in the system have the PDF $f(x\ |\ \theta_x) = y$, with a log-likelihood of $f_{x|\theta_x}(\vec{y}_x)$ where $\theta_x\in \vec{\theta}$ and $y_x$ is the set of observations we make of $x$. We make an additional assumption that that the score function $\forall x\in X,\; \mathcal{S}:=\frac{\partial}{\partial\mu} f_{x|\theta_x}(y_x)$ is finite (\ie $|X| = n < \infty$). The Fisher information matrix (FIM) $I(\vec{\theta})$ is then the row-major $n\times n$ matrix:
+Because the second derivative of the log-likelihood is always a single value in a normal distribution, we omit (for brevity) plots of the second derivative and its distribution when evaluated at $\mu'$.\par
+Now, considering the multidimensional case of a complex system containing $X=\{x_1,x_2,\ldots,x_n\}$ random variables, each governed by a respective parameter in $\vec{\theta}=\{\theta_1,\theta_2,\ldots,\theta_n\}^T$. Let the value of a single element $x\in X$ in the system have the PDF $f(x\ |\ \theta_x) = y$, with a log-likelihood of $f_{x|\theta_x}(\vec{y}_x)$ where $\theta_x\in \vec{\theta}$ and $y_x$ is the set of observations we make of $x$.\par
+Note that, in the multidimensional case, we additionally assume the score function is finite. We make this assumption to ensure we are able to compute its derivative. Posing this formally, let $|X| = n < \infty$, then:
+\begin{equation*}
+    \forall x\in X,\; \mathcal{S}:=\frac{\partial}{\partial\mu} f_{x|\theta_x}(y_x)
+\end{equation*}
+\noindent The Fisher information matrix (FIM) $I(\vec{\theta})$ is then the row-major $n\times n$ matrix:
 \begin{equation*}
     I(\vec{\theta}) = [I_{ij}(\vec{\theta})^{n}_{i,j=1}]
 \end{equation*}
@@ -436,22 +457,23 @@ Where the jth element of the ith row is given by:
     \frac{\partial}{\partial \theta_i} log f_{x|\vec{\theta}}(y) \cdot
     \frac{\partial}{\partial \theta_j} log f_{x|\vec{\theta}}(y) \right]
 \end{equation*}
-\noindent This can be simplified by taking the second deviate in a similar fashion to \cref{eq:Fisherinfo} giving:
-\begin{equation}\label{eq:FIM}
+\noindent This can be simplified by taking the second deviate in a similar fashion to \cref{eq:Fisherinfo}, giving:
+\begin{equation*}
+    % \label{eq:FIM}
     I_{ij}(\vec{\theta})= -\EX_{\vec{\theta}}\left[
     \frac{\partial^2}{\partial \theta_i \partial \theta_j} log f_{x|\vec{\theta}}(y)\right]
-\end{equation}
-This matrix concisely represents the co-variance of all MLEs, with the co-variance of the $i$th and $j$th parameters estimator given by $I(\vec{\theta})_{ij}$ and the variance of the estimator of parameter $n\equiv I(\vec{\theta})_{nn}$.
+\end{equation*}
+This matrix concisely represents the co-variance of all MLEs, with the co-variance of the $i$th and $j$th parameters estimator given by $I_{ij}(\vec{\theta})$. Additionally, the variance of the MLE of parameter $n\equiv I_{nn}(\vec{\theta})$.
 
 \subsection{The Cramér–Rao Bound}
 \label{ssec:Bcrb}
 
-Given $I(\theta)$ the Cramér–Rao Bound (CRB) gives a lower bound on the accuracy with which we can estimate each $\theta\in\hat\theta$. From \cref{ssec:Bmle} we know that $\VAR(\hat\theta)$ dictates our confidence that the MLE reflects the true value of the parameter, it follows that the CRB is a bound on $\VAR(\hat\theta)$, we provide a proof from \cite{trees_detection_2013} under the assumption that the MLE is unbiased in Appendix C.
-% \begin{lemma}\label{lem:dx1}
-% \end{lemma}
-
-From rearranging the equality in \cref{eq:crbderivation} we have $\VAR(\hat\theta) \geq 1/I(\theta)$.\par
-For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$, the CRB is w.r.t. the co-variance matrix $cov_\theta(\hat\theta)$ where $\hat\theta$ is the vector of MLE's for each  $\theta\in\vec{\theta}$ and $\vec{\theta}=\{\theta_1,\theta_2,\ldots,\theta_n\}^T$. The CRB is then given by the inequality $cov_\theta(\hat\theta)\geq I(\vec{\theta})^{-1}$, we note that in cases where $n>>1$, $I(\vec{\theta})^{-1}$ is infeasible to compute, in these cases a looser bound can be given using only the diagonal elements on the inverse matrix by $\sum_{i=1}^n 1/I(\hat\theta)_{ii}^{-1}$ as:
+Given $I(\theta)$, the Cramér–Rao Bound (CRB) gives a lower bound on the accuracy with which we can estimate each $\theta\in\hat\theta$. From \cref{ssec:Bmle} we know that $\VAR(\hat\theta)$ dictates our confidence that the MLE reflects the true value of the parameter. It follows that the CRB is a bound on $\VAR(\hat\theta)$. In fact, previous work has proven that the CRB gives a strict lower bound of:
+\begin{equation*}
+    \VAR(\hat\theta) \geq 1/I(\theta)
+\end{equation*}
+\noindent We provide a proof of this from \cite{trees_detection_2013} under the assumption that the MLE is unbiased in Appendix C.\par
+For the multi-parameter case of a FIM, instead of $\VAR(\hat\theta)$, the CRB is w.r.t. the co-variance matrix $cov_{\vec{\theta}}(\hat\theta)$ where $\hat\theta$ is a vector of MLE's for each $\theta\in\vec{\theta}$ and $\vec{\theta}=\{\theta_1,\theta_2,\ldots,\theta_n\}^T$. The CRB is then given by the inequality $cov_\theta(\hat\theta)\geq I(\vec{\theta})^{-1}$. Note that, in cases where $n>>1$, it is computationally infeasible to compute $I(\vec{\theta})^{-1}$ and a looser bound can be given using only the diagonal elements on the inverse matrix by $\sum_{i=1}^n 1/I(\hat\theta)_{ii}^{-1}$ as:
 \begin{align*}
     \VAR_{\vec{\theta}}(\hat\theta) &= [cov_{\vec{\theta}}(\hat\theta)]_{ii}\\
     &\geq [I(\vec{\theta})]^{-1}_{ii}\\
@@ -460,34 +482,44 @@ For the multi-parameter case of a FIM, instead of $\VAR(\widehat{\mathcal{L}})$,
 
 \section{Optimum Experiment Design}
 \label{sec:Boptimization}
-The accuracy of tomographic analysis is bound by the information acquired from measurements and how we process that information. In this section we introduce techniques for maximising the information we are able to gain from our probing. Specifically, we introduce concepts of optimum experimental design with the intent of using these to compute optimal probe allocation between paths in \cref{cha:methodology}.\par
-Optimum experiment design (OED) is board field of study focusing on statistical methods to ensure an experiment yields the most robust and accurate results possible. Initially shepherded by \cite{smith_standard_1918}, of particular pertinence to tomography is OEDs applicability to parameter estimation in inverse problems. Work around OED for parameter estimation, as noted in \cref{cha:litreview}, primarily focuses on minimising the number of trials or "experimental cost" for accurately estimating a system's underlying statistical models, this lens can be inverted to instead maximise the accuracy of this estimation from a fixed number of trials.\par
-At a high level, the problem of designing an optimal experiment is typically decomposed into 4 primary sub-problems: specification of a model, identification of the design region, specification of a design criterion, and specification of errors. If the formulated design differs significantly from popular existing approaches in literature a comparison should be drawn to validate key differences or identify missteps in problem specification. Irrelevant of its formulation, the experiment produces an estimator of the underlying parameters and is evaluated w.r.t the variance of this estimator as, intuitively, the variance of the estimator corresponds to the accuracy of the experiment.\par
-Experiments to infer complex model\footnote{A complex model is analogous to the mathematical representation of a multi-parametric system such as a computer network.} parameters (sometimes referred to as screening experiments) can be evaluated using a range of statistical criteria however the two most common are A-optimality and D-optimality. A-optimality minimizes the average variance of all parameter estimates or, as the diagonal elements of the FIM correspond to these variances (\cref{ssec:Bfisherinformation}), the trace of the FIM tr$\left(I(\vec{\theta})\right)$. In contrast D-optimality minimises the confidence region around the estimators, as this confidence region is inversely proportional to the determinant of the FIM (\cite{jones_-optimal_2021}) this is equivalent to maximising $|I(\vec{\theta})|$.\par
+The accuracy of tomographic analysis is bound by the information acquired from measurements, and by how we process that information. In this section we introduce techniques for quantifying the information we are able to gain from network probing; with the intent of using this to compute optimal probe allocation between paths in \cref{cha:methodology}.\par
+Optimum experiment design (OED) is a board field of study focusing on statistical methods to ensure that an experiment yields the most robust and accurate results possible. Initially shepherded by \cite{smith_standard_1918}, OED is of particular pertinence to network tomography on account of its applicability to parameter estimation in inverse problems. Work centered around OED for parameter estimation, primarily focuses on minimising the experimental cost (typically the number of trials) for accurately estimating the parameters of a system's underlying model. This lens can be inverted to instead maximise the accuracy of this estimation from a fixed number of trials.\par
+At a high level, the problem of designing an optimal experiment is typically decomposed into 4 primary sub-problems: specification of a model, identification of the design region, specification of a design criterion, and specification of errors. If the formulated design differs significantly from previous approaches in literature then a comparison should be drawn to validate key differences, or to identify missteps in problem specification.\par
+Irrelevant of its formulation, the experiment results in an estimator of the underlying model's parameters. As the variance of the estimator corresponds to the accuracy of the experiment (see \cref{sec:Bparameterestimation}), the experiment's optimality is evaluated w.r.t the variance of this estimator.\par
+Experiments to infer complex model\footnote{A complex model is analogous to the mathematical representation of a multi-parametric system such as a computer network.} parameters (sometimes referred to as screening experiments) can be evaluated using a range of statistical criteria. However, we will focus on the two most common criteria of A-optimality, and D-optimality. A-optimality minimises the average variance of all parameter estimates. As the diagonal elements of the FIM correspond to these variances (\cref{ssec:Bfisherinformation}), this is equivalent to minimising the trace of the FIM:
+\begin{equation*}
+    argmin_{\vec{\theta}}\ \ tr\left(I(\vec{\theta})\right)
+\end{equation*}
+In contrast, D-optimality minimises the confidence region around the estimators. As this confidence region is inversely proportional to the determinant of the FIM (\cite{jones_-optimal_2021}); this is equivalent to:
+\begin{equation*}
+argmax_{\vec{\theta}}\ \ det\left(I(\vec{\theta})\right)
+\end{equation*}
 
 \section{Kolmogorov–Smirnov Test}
-Two non-Gaussian sample distributions can be quantitatively compared using a two-sample Kolmogorov–Smirnov (KS) test (\cite{kakkavas_review_2020}). This non-parametric test computes the distance between the cumulative distribution functions (CDF) of both samples.\par
-Specifically, the test statistic $D$ of a one-tailed KS test of the probability distributions $F(x)$ and $G(x)$ with $n$ and $m$ samples respectively is computed using (\cref{eq:kstest}). This calculation corresponds to the difference between the two CDFs at each point and is more easily understood in a graphical format (see \cref{fig:kstestplot}).\par
-\begin{equation}
-\label{eq:kstest}
+\label{sec:BKStest}
+Two generic sample distributions can be quantitatively compared using a two-sample Kolmogorov–Smirnov (KS) test (\cite{kakkavas_review_2020}). This non-parametric test computes the distance between the cumulative distribution functions (CDF) of both samples. Specifically, a one-tailed KS test of $D$, the difference between two probability distributions $F(x)$ and $G(x)$ with $n$ and $m$ samples respectively, is given by:
+\begin{equation*}
+% \label{eq:kstest}
     D_{n,m} = max_x F(x)-G(x)
-\end{equation}
-The corresponding p-value of a KS test evaluates the probability of the null hypothesis, that two assessed samples are drawn from the same underlying distribution, being true. In the one-tailed case this p-value instead assess the null hypothesis that the underlying distribution of $F(x)$ is greater than that of $G(x)$. For this one-tailed test with a p-value threshold of $\alpha$ the null hypothesis is rejected if \cref{eq:kstest2tailed} holds.
-\begin{equation}
-\label{eq:kstest2tailed}
-    D_{n,m} > c(\alpha)\sqrt{\frac{n+m}{n\cdot m}}
-\end{equation}
-\begin{figure}[H]
+\end{equation*}
+As both CDFs can be plotted on a shared axis, this difference is most easily comprehended in a graphical format. We provide a visual example in \cref{fig:kstestplot} (from \cite{kirkman_kolmogorov-smirnov_1996}) where $D$ is explicitly annotated.\par
+\begin{figure}[t]
     \centering
     \includegraphics[width=0.6\textwidth]{figs/background/KS_test_comparison.png}
     \caption[Graphical example of the KS test statistic]{Graphical example of the KS test statistic (courtesy \cite{kirkman_kolmogorov-smirnov_1996})}
     \label{fig:kstestplot}
 \end{figure}
-
+The p-value of a KS test corresponds the probability of the null hypothesis, that two assessed samples are drawn from the same underlying distribution, being true. In the one-tailed case this p-value instead assess the null hypothesis that the underlying distribution of $F(x)$ is greater than that of $G(x)$. For a one-tailed KS test with a p-value threshold of $\alpha$, where $c(\alpha)$ is the inverse of the Kolmogorov distribution at $\alpha$ (see \cite{kirkman_kolmogorov-smirnov_1996}), the null hypothesis is rejected iff \cref{eq:kstest2tailed} holds true.
+\begin{equation}
+    \label{eq:kstest2tailed}
+    D_{n,m} > c(\alpha)\sqrt{\frac{n+m}{n\cdot m}}
+\end{equation}
 
 \section{Summary}
-In this chapter we have introduced four major concept areas critical to the understanding of network tomography. The ER and BA random graph generation algorithms were described in \cref{sec:Bgraphgeneration} and the key properties of the graphs they produce were highlighted. The scale-free nature of graph produced by the BA methods and the desirability of this property was covered. We additionally covered the relevance of techniques for generating large data sets to allow empirical validation in spite of the lack of availability of real world topologies.\par
-
-In \cref{sec:Broutingmechanisms} we distinguish between general UDP network traffic (\textit{background traffic}) and \textit{probe packets} sent between monitored nodes. We describe four mechanisms which the routing of probe packets can be governed by and establish controllable cycle-free routing (\textit{CFR}) as the most applicable in the real world.\par
-
-In \cref{sec:Bparameterestimation} we explain three related statistical concepts: maximum likelihood estimation, Fisher information, and the Cramér–Rao bound. We explain the use of each of these within inverse problems, specifically parameter estimation. In \cref{sec:Boptimization} we present concepts of parsimonious probe path selection and optimal experiment design. We then discuss the potential for both of these techniques to improve the accuracy of network tomography.
+In this chapter we have introduced major concept areas critical to the understanding of network tomography. In \cref{sec:Bgraphgeneration}, we described the ER and BA random graph generation algorithms and highlighted key properties of the graphs they produce. The scale-free nature of graphs produced by the BA methods was covered, as was the desirability of this property. We additionally covered the relevance of techniques for generating large data sets that would allow empirical validation in spite of the lack of availability of real-world topologies.\par
+In \cref{sec:Bnetworktomography} we give insight into the process of network tomography, breaking this process into three subsections. In \cref{ssec:B4routerexample} the first we simulate a four router network to give a worked example of how router level metrics can be inferred from end-to-end probe path measurements. We additionally touch on how probe paths measurements can be used to infer nefarious behaviour, and how cases where this behaviour cannot be inferred arise.\par
+In \cref{ssec:B7routerexample} we drill down into cases where nefarious behaviour cannot be inferred using a seven router network example. We define a binary vector representation of probe paths, and address how unique router identifiability can be computer from this. In \cref{ssec:Bparsppselection} we justify the a minimal set of probe paths with our desire for a maximal amount of information collected from each path. We then introduce Zheng's algorithm for selecting the minimal set of probe paths that still ensure router identifiability.\par
+In \cref{sec:Broutingmechanisms} we distinguish between general UDP network traffic (\textit{background traffic}) and \textit{probe packets} sent between monitored nodes. We describe four mechanisms which the routing of probe packets can be governed by, and establish controllable cycle-free routing (\textit{CFR}) as the most applicable in the real world.\par
+In \cref{sec:Bparameterestimation} we explain three related statistical concepts: maximum likelihood estimation, Fisher information, and the Cramér–Rao bound. We explain the use of each of these within inverse problems; specifically, parameter estimation.\par
+In \cref{sec:Boptimization} we present the concept of optimal experiment design. We then discuss the potential of inverting the typical approach to OED to improve the accuracy of network tomography. We present and explain two specific criteria used in to evaluate the optimality of experiments, A-optimality, and D-optimality.\par
+Lastly, in \cref{sec:BKStest}, we introduce the two-sample Kolmogorov–Smirnov test for equality of non-Gaussian probability distributions. We cover intuition behind calculation of the KS test statics and associated p-value. We then narrow our focus to the one-tailed KS test of whether probability distribution $F(x)$ yields values larger than another distribution $G(x)$. We phrase this in terms of rejecting or accepting, according to a threshold of $\alpha$, the null hypothesis that $F(x)$ yields values equal to or less than $G(x)$.
