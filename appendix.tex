@@ -143,13 +143,9 @@
 \newpage
 \section{Mapping of Packet Delay Metrics to Hold Probability}
 \label{sec:APDAtoHoldprob}
- To establish a relationship between router packet delay metrics and hold probability we  consider 100 randomly generated topologies between 10-50 nodes, 50 generated using BA and 50 using ER. Randomly generated topologies are used in-place of the limited number real world topologies to ensure results are robust. We assume that there is an underlying parameterised relationship between a routers hold probability and buffer queue length. With the relationship being parameterised over the two variable network parameters: max buffer queue length and background traffic intensity.\par
+ To establish a relationship between router packet delay metrics and hold probability we  consider 100 randomly generated topologies between 10-50 nodes, 50 generated using BA and 50 using ER. Randomly generated topologies are used in-place of the limited number real-world topologies to ensure results are robust. We assume that there is an underlying parameterised relationship between a routers hold probability and buffer queue length. With the relationship being parameterised over the two variable network parameters: max buffer queue length and background traffic intensity.\par
   To determine this relationship we simulate each topology with a combinations of max queue length from  200-5,000 and background traffic intensity from 0.1-0.5, each for 10,000 time steps. For each combination of parameters the hold probability of a randomly selected nefarious router is varied from 0.1-0.9. The PDA of the router is recorded along with the corresponding hold probability. Results are then graphed using a scatter plot to visually approximate and display the relationship between these router attributes. For implementation details see \cite{sylvester_millar_real_2021}.\par
   To map an arbitrary hold value to a measured PDA or vice-versa we fit a function to these discrete observed data points. The data is fitted using the curve\_fit function of SciPy's optimize class which we provide an initial guess of parameters. We tested multiple possible function to fit the data but a standard sigmoid function was found to fit best, matching initial visual analysis of the distribution. We provided the curve function with a minimum value of 0 and a maximum of the maximum queue length. The Levenberg–Marquardt minimisation algorithm was used for fitting as it was found to be the best performing of algorithms within SciPy's library. For transparency we also present results for curve fitting using Trust Region Reflective and Rectangular Trust Region Dogleg minimisation algorithms.\par
-  We record the estimated curve fitting parameters from SciPy's curve fitting, noting the minimum and maximum values are approximately the supplied initial guesses. Finally, variation of the functions parameters w.r.t max queue length and background traffic intensity were modeled. This enabled estimation of the PDA to hold probability relation given only network parameters.\par
-  Inverting the observed empirical PDA from varying hold probabilities we are able to estimate hold probability from PDA alone. Using this estimation of hold probability we select a hold probability between 0.0-1.0 as a threshold for a router being classified as nefarious. We then generate a ROC curve to evaluate the efficacy of our classification in the most general context possible. We do not present a confusion matrix  as requirements governing tolerated number of false negatives and false positive will vary between systems.\par
-  
-  We consider the baseline network in \cref{fig:A6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
   \begin{figure}[H]
     \centering
     \tikzsetnextfilename{6routertopology_appendix}
@@ -199,10 +195,11 @@
     \caption{6 router network with 2 monitors located at $r_0$ and $r_5$ (Reprinted from page \pageref{fig:6routersample})}
     \label{fig:A6routertop}
 \end{figure}\par
+  We record the estimated curve fitting parameters from SciPy's curve fitting, noting the minimum and maximum values are approximately the supplied initial guesses. Finally, variation of the functions parameters w.r.t max queue length and background traffic intensity were modeled. This enabled estimation of the PDA to hold probability relation given only network parameters.\par
+  Inverting the observed empirical PDA from varying hold probabilities we are able to estimate hold probability from PDA alone. Using this estimation of hold probability we select a hold probability between 0.0-1.0 as a threshold for a router being classified as nefarious. We then generate a ROC curve to evaluate the efficacy of our classification in the most general context possible. We do not present a confusion matrix  as requirements governing tolerated number of false negatives and false positive will vary between systems.\par
+  We consider the baseline network in \cref{fig:A6routertop} for initial analysis we pivot to examination of the validity of our new inferential method under varied network conditions. The two primary dynamic properties in the simulated network are the length of router queuing buffers and the amount of background traffic which we refer to as traffic intensity. We consider the impact of these properties and their combinatory effects on packet delay metrics.\par
 We consider only the case of $r_1$ begin nefarious, we measure the impact of hold probabilities on packet delay metrics over varying buffer queue lengths. Firstly considering PDA plots of original values and values with a standard min-max normalisation applied are given in \cref{fig:Rvariedqlenpda}.\par
-From these we see that irrespective of queue length the relation between hold probability and PDA appears to be a sigmoid curve. Using a standard Levenberg–Marquardt method \cite{osborne_nonlinear_1976} we fit a sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results. We selected the Levenberg–Marquardt minimisation algorithm as it performed the best over all fits, both the trust region reflective algorithm and dogleg algorithm with a rectangular trust region were tried but produced inferior $R^2$ values, results for these fits are shown in \cref{Aaltcurvefit}.\par
-The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, accurate enough to confirm the initial prediction. In the non-normalised case the upper bound of each sigmoid is given by approximately the maximum length and a lower bound being approximately 0. In normalising the data we see that an increase in queue length both shifts the inflection point of the sigmoid to the right and reduces the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real world systems, as such we do not consider these in further analysis and leave them to future work.\par
-\begin{figure}[H]
+\begin{figure}[t]
     \centering
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_lm.png}
@@ -215,9 +212,9 @@ The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, acc
     \caption{Plots of average nefarious router buffer queue length over various hold probabilities.}
     \label{fig:Rvariedqlenpda}
 \end{figure}
-  
-  \label{Aaltcurvefit}
-\begin{figure}[H]
+From these we see that irrespective of queue length the relation between hold probability and PDA appears to be a sigmoid curve. Using a standard Levenberg–Marquardt method \cite{osborne_nonlinear_1976} we fit a sigmoid curve of the form $x=a/1+e^{-c\cdot x-d} + b$ to each set of observation results. We selected the Levenberg–Marquardt minimisation algorithm as it performed the best over all fits, both the trust region reflective algorithm and dogleg algorithm with a rectangular trust region were tried but produced inferior $R^2$ values, results for these fits are shown in \cref{Aaltcurvefit}.\par
+The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, accurate enough to confirm the initial prediction. In the non-normalised case the upper bound of each sigmoid is given by approximately the maximum length and a lower bound being approximately 0. In normalising the data we see that an increase in queue length both shifts the inflection point of the sigmoid to the right and reduces the gradient of the inflection. The exception to this is queue lengths < 50 where the function seems to behave strangely, we anticipate this is due to the queue easily becoming full, thereafter dropping packets and containing less information, queue lengths this small would however be in practical in real-world systems, as such we do not consider these in further analysis and leave them to future work.\par
+\begin{figure}[t]
     \centering
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_trf.png}
@@ -228,9 +225,9 @@ The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, acc
         \caption{Min-max scaled}
     \end{subfigure}
     \caption{Plots of average nefarious router buffer queue length over various hold probabilities fitted using TRF minimisation.}
+    \label{Aaltcurvefit}
 \end{figure}
-
-\begin{figure}[H]
+\begin{figure}[t]
     \centering
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/results/qlen_fitting/qlen_PDA_dogbox.png}
@@ -242,8 +239,7 @@ The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, acc
     \end{subfigure}
     \caption{Plots of average nefarious router buffer queue length over various hold probabilities fitted using dogbox minimisation.}
 \end{figure}
-
-\begin{table}[H]
+\begin{table}[t]
  \centering
   \begin{tabular}{@{}cccccc@{}}
    \toprule
@@ -261,21 +257,20 @@ The fit was calculated to have an $R^2=0.997$ with a minimum of $R^2=0.994$, acc
   \end{tabular}
   \caption{Variance of nefarious router PDA grouped by varying delay probabilities in the baseline 6 router network. (Note all values are $R^2\cdot 100$)}
   \end{table}
-    
-    To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in \cref{fig:Rsigmoidcoefs}. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient. Fitting a polynomial model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length. This estimation can allow for the relation to be inverted i.e. given a router's queue length and PDA we can estimate the router's hold probability.
-    \begin{figure}[H]
-        \centering
-        \begin{subfigure}{0.475\textwidth}
-            \includegraphics[width=\textwidth]{figs/results/qlen_param_c.png}
-            \caption{Gradient at inflection point}
-        \end{subfigure}
-        \begin{subfigure}{0.475\textwidth}
-            \includegraphics[width=\textwidth]{figs/results/qlen_param_d.png}
-            \caption{X-value of infection point}
-        \end{subfigure}
-        \caption{Plots of parameters for modeled sigmoid relationship between hold probability and router buffer queue length.}
-        \label{fig:Rsigmoidcoefs}
-    \end{figure}
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_param_c.png}
+        \caption{Gradient at inflection point}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/results/qlen_param_d.png}
+        \caption{X-value of infection point}
+    \end{subfigure}
+    \caption{Plots of parameters for modeled sigmoid relationship between hold probability and router buffer queue length.}
+    \label{fig:Rsigmoidcoefs}
+\end{figure}
+To quantify the relationship between queue length and the produced sigmoid we calculate the coefficients for the point of inflection and gradient for each queue length in \cref{fig:Rsigmoidcoefs}. A clear decreasing logarithmic trend can be seen between queue length and inflection point, with an increasing polynomial trend between queue length and inflection gradient. Fitting a polynomial model to this trend we are able to produce a function to estimate the sigmoid curve given a routers queue length. This estimation can allow for the relation to be inverted i.e. given a router's queue length and PDA we can estimate the router's hold probability.
     
 \section{Derivation of the Cramér–Rao Bound}
 We provide a derivation from \cite{trees_detection_2013} given an unbiased estimator $\int f\ dx=1$ 
