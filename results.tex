@@ -10,8 +10,7 @@ We note that ROC curves are presented with true positive rates to adhere to best
 
 \subsection{Classifier One}
 \label{ssec:Ras1}
-Firstly we consider classification with a full delay distribution and baseline comparisons. Confusion matrices for nefarious router classification are shown in \cref{tab:ngercmatrix,tbl:frncecmatrix,tbl:nrwycmatrix}. Each classification was performed using a KS comparison against the true baseline values and a p-val cut-off of 0.0 to provide the strictest possible guarantee of significance. We present a summary of classification sensitivity and specificity in \cref{tbl:Rassumptionset1summary}, discussing the results in more detail below.\par
-\noindent
+Firstly we consider classification with a full delay distribution and baseline comparisons. Confusion matrices for router classification are shown in \cref{tab:ngercmatrix,tbl:frncecmatrix,tbl:nrwycmatrix}. 
 \begin{table}[H]
     \centering
     \aboverulesep = 0pt
@@ -25,7 +24,6 @@ Firstly we consider classification with a full delay distribution and baseline c
     \caption{Confusion matrix for classification under assumption set 1 in Nobel.}
     \label{tab:ngercmatrix}
 \end{table}
-\noindent
 \begin{table}[H]
     \centering
     \aboverulesep = 0pt
@@ -39,7 +37,6 @@ Firstly we consider classification with a full delay distribution and baseline c
     \caption{Confusion matrix for classification under assumption set 1 in Free.}
     \label{tbl:frncecmatrix}
 \end{table}
-\noindent
 \begin{table}[H]
     \centering
     \aboverulesep = 0pt
@@ -53,6 +50,7 @@ Firstly we consider classification with a full delay distribution and baseline c
     \caption{Confusion matrix for classification under assumption set 1 in CPLEX.}
     \label{tbl:nrwycmatrix}
 \end{table}
+Each classification was performed using a KS comparison against the true baseline values and a p-val cut-off of 0.0 to provide the strictest possible guarantee of significance. We present a summary of classification sensitivity and specificity in \cref{tbl:Rassumptionset1summary}, discussing the results in more detail below.\par
 Classification in the Nobel topology has a sensitivity of 100\% across all evaluated sets of nefarious routers. With 37 false positives, the classifier has a specificity of 99.99\%, giving an extremely precise and accurate nefarious router classification. For the Free and CPLEX topologies, we observe marginally worse classification performance. The classifier has a sensitivity of 96.5\% and 97.64\% and a specificity of 96.34\% and 82.11\% for Free and CPLEX respectively. Therefore, classification in each topology easily meets the 0.9 sensitivity threshold for scenario one.\par
 For scenario two, the classifier fulfils the requirements over each topology, achieving a true positive rate >> 0.7. The highest false positive rate occurs in the CPLEX topology where a rate of 0.18 is achieved. Similarly, the classifier meets requirement in scenario three in all topologies. The highest false positive rate occurs in the CPLEX topology at only 0.02.\par
 However, the most striking result is a sensitivity of 100\% in the Nobel topology, closely followed by the 99.9\% specificity in the same topology. We anticipate that the extreme efficacy of this classification is due to the relatively small number of routers within the Nobel topology, allowing us to obtain router identifiability using only 28 probe paths.\par
@@ -75,24 +73,7 @@ In all topologies, we observe the classifier having a higher sensitivity than sp
 \label{ssec:Ras2}
 Next we consider classification with a baseline comparison and only packet delay summary statics available. ROC curves for classification in each topology are given in \cref{fig:RA2ROCcurves}. Note that the performance of the classifier, under each scenario we use for quantitative comparison (see \cref{ssec:MInferredvalues}), is extrapolated from a corresponding point on the ROC curve. We present a summary of these results in \cref{tbl:Rassumptionset2summary} where FNR and FPR, respectively, correspond to the closest false negative rate and false positive rate which meet each scenarios requirements.\par
 For scenario one, router classification in the Nobel, Free, and CPLEX topologies satisfied the sensitivity threshold of 0.9 with false positive rates of 0.811, 0.838, and 0.919 respectively. Classification in the Nobel and Free topologies is superior to random classification of routers. However, with a sensitivity of > 0.763, the classification accuracy for the CPLEX network is inferior to random classification.\par This is due to a sympathetic increase between non-nefarious router PDA (over baseline PDA) and nefarious router PDA. The sympathetic increase is caused by the link-state protocol routing packets around nefarious routers as their buffer queues fill. This results in more packets being forwarded to non-nefarious routers over the baseline simulation, thus increasing the difference in PDA from the baseline simulation.\par
-For scenario two, the classifier reaches the 0.7 sensitivity threshold in the Nobel and Free within the specificity requirement. However, in the CPLEX topology, the specificity requirement is not and the classifier can only achieve a false positive rate of 0.669. For scenario three the 0.9 specificity threshold is satisfied with false negative rates of 0.558, 0.682, and 0.864 for each topology respectively.\par
-In scenario two all classifier perform better than a random classification. However classification in the CPLEX topology is notably worse than the Nobel and Free topologies, even when accounting for the increased number of routers. We anticipate this is caused by the same factors as in classifier one. In general though, the less stringent sensitivity requirements can be seen to reduce the impact of noise on classification.\par
-In scenario three, as in scenario two, all classifier perform better than a random classification. However, with scenario three's requirements on specificity, the reduction in classifier accuracy is proportional to the number of routers in each topology. Additionally, across all topologies, the classifier performs the best relative to a random classification in sensitivity and specificity ranges of [0.2, 0.76] and [0.24, 0.83] respectively. Classification under assumption case two is therefore better suited to use in cases with a higher tolerance for false negatives.\par
-\begin{table}[H]
-    \centering
-    \begin{tabular}{ccccccc}
-        & \multicolumn{2}{c}{Scenario 1} & \multicolumn{2}{c}{Scenario 2} & \multicolumn{2}{c}{Scenario 3}\\
-        \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-        Topology & TPR & FPR & TPR & FPR & TPR & FPR\\
-        \midrule
-        Nobel & 0.9 & 0.811 & 0.7   & 0.558 & 0.442 & 0.1 \\
-        Free  & 0.9 & 0.838 & 0.7   & 0.682 & 0.318 & 0.093 \\
-        CPLEX & 0.9 & 0.919 & 0.669 & 0.864 & 0.154 & 0.098 \\
-    \end{tabular}
-    \caption{Summary of performance under each scenario (see \cref{ssec:MInferredvalues}) for classifier 2.}
-    \label{tbl:Rassumptionset2summary}
-\end{table}
-\noindent
+For scenario two, the classifier reaches the 0.7 sensitivity threshold in the Nobel and Free within the specificity requirement. However, in the CPLEX topology, the specificity requirement is not and the classifier can only achieve a false positive rate
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.475\textwidth}
@@ -110,6 +91,24 @@ In scenario three, as in scenario two, all classifier perform better than a rand
     \caption{ROC curves for classification under assumption set 2.}
     \label{fig:RA2ROCcurves}
 \end{figure}
+of 0.669. For scenario three the 0.9 specificity threshold is satisfied with false negative rates of 0.558, 0.682, and 0.864 for each topology respectively.\par
+In scenario two all classifier perform better than a random classification. However classification in the CPLEX topology is notably worse than the Nobel and Free topologies, even when accounting for the increased number of routers. We anticipate this is caused by the same factors as in classifier one. In general though, the less stringent sensitivity requirements can be seen to reduce the impact of noise on classification.\par
+In scenario three, as in scenario two, all classifier perform better than a random classification. However, with scenario three's requirements on specificity, the reduction in classifier accuracy is proportional to the number of routers in each topology. Additionally, across all topologies, the classifier performs the best relative to a random classification in sensitivity and specificity ranges of [0.2, 0.76] and [0.24, 0.83] respectively. Classification under assumption case two is therefore better suited to use in cases with a higher tolerance for false negatives.\par
+\begin{table}[t]
+    \centering
+    \begin{tabular}{ccccccc}
+        & \multicolumn{2}{c}{Scenario 1} & \multicolumn{2}{c}{Scenario 2} & \multicolumn{2}{c}{Scenario 3}\\
+        \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+        Topology & TPR & FPR & TPR & FPR & TPR & FPR\\
+        \midrule
+        Nobel & 0.9 & 0.811 & 0.7   & 0.558 & 0.442 & 0.1 \\
+        Free  & 0.9 & 0.838 & 0.7   & 0.682 & 0.318 & 0.093 \\
+        CPLEX & 0.9 & 0.919 & 0.669 & 0.864 & 0.154 & 0.098 \\
+    \end{tabular}
+    \caption{Summary of performance under each scenario (see \cref{ssec:MInferredvalues}) for classifier 2.}
+    \label{tbl:Rassumptionset2summary}
+\end{table}
+\noindent
 
 \subsection{Classifier Three}
 \label{ssec:Ras3}
@@ -134,6 +133,7 @@ In scenario three, as in scenario two, all classifier perform better than a rand
 Finally, we use only packet delay summary statics for classification. ROC curves for classification in each topology are given in \cref{fig:RA3ROCcurves}. We evaluate the classifiers' performance for each scenario below. Additionally, as in our evaluation of classifier two, We present a summary of these results in \cref{tbl:Rassumptionset3summary} where FNR and FPR, respectively, correspond to the closest false negative rate and false positive rate which meet each scenarios requirements.\par\par
 For scenario one, classification of the Nobel and CPLEX topologies results in false positive rates of 0.4 and 0.5 respectively. For the Free topology, the classifier is only able to attain a sensitivity of 0.9 with a false positive rate of 1.0 (classifying all routers as nefarious). Excluding this case, PDA is not sufficient to classify routers with a sensitivity greater than 0.83 in the Free topology.\par
 This is due to the topology containing a router with a degree of 10. This router represents the city of Paris (see \cref{fig:MISPplots}), we will therefore refer to it as \textit{the Paris router} onwards. The Paris router experiences more than twice as much traffic as the average router of degree 3. and thus has a near or completely full queue buffer regardless of nefarious behaviour. This is compounded by 15 of the 37 probe paths including Paris, resulting in a disproportionate number of probe packets traversing the router. Therefore, when using a PDA threshold equal to the buffer queue length $\pm0.1$ for classification, the Paris router is always classified as nefarious. A similar limitation exists in the CPLEX topology, where due to the same factors, a maximum sensitivity of 0.966 can be achieved.\par
+Conversely, the classifier performs extremely well on the Nobel topology achieving a true positive rate of 1.0 with a false positive rate of 0.544. Although both Nobel and CPLEX have a maximum router degree of 6, in the Nobel network only 12 probe paths traverse the maximally connected router, compared to 21 in CPLEX. Therefore, in the CPLEX network (unlike the Free network), the maximally connected router's buffer queue receives disproportionately more probe packets. This results in the router being classified as nefarious, regardless of its delaying behaviour, in the majority of test trials.\par
 \begin{table}[t]
     \centering
     \begin{tabular}{ccccccc}
@@ -148,7 +148,6 @@ This is due to the topology containing a router with a degree of 10. This router
     \caption{Summary of performance under each scenario (see \cref{ssec:MInferredvalues}) for classifier 3.}
     \label{tbl:Rassumptionset3summary}
 \end{table}
-Conversely, the classifier performs extremely well on the Nobel topology achieving a true positive rate of 1.0 with a false positive rate of 0.544. Although both Nobel and CPLEX have a maximum router degree of 6, in the Nobel network only 12 probe paths traverse the maximally connected router, compared to 21 in CPLEX. Therefore, in the CPLEX network (unlike the Free network), the maximally connected router's buffer queue receives disproportionately more probe packets. This results in the router being classified as nefarious, regardless of its delaying behaviour, in the majority of test trials.\par
 For scenario two, classification of all topologies meets specificity and sensitivity requirements. Classification in the Nobel, Free, and CPLEX topologies at the false negative threshold have false positive rates of 0.339, 0.363, and 0.235 respectively. These rates are a strict improvement over those from classifier two. This improvement is due to the increased queue length of nefarious routers causing traffic to be re-routed through non-nefarious routers, thereby increasing their queue lengths. As this sympathetic increase is absent in the baseline simulation, an increase in PDA is seen from the baseline of non-nefarious routers’. This increase is indistinguishable from the buffer queue increase in nefarious routers. Therefore, we observe more cases of routers being incorrectly labelled as nefarious.\par
 For scenario three, classification of each topology results in a false negative rate of 0.629 for the Nobel and Free topologies and 0.556 for CPLEX. However, for each case in \cref{fig:RA3ROCcurves}, no PDA thresholds enable a classification with a false positive rate < 0.2. This is due to an overlap in PDA values between weakly connected nefarious routers and strongly connected non-nefarious routers. The amount of traffic arriving at strongly connected non-nefarious routers fills their buffer queue at a rate similar to that of a less connected nefarious router. Therefore, any PDA threshold sufficient to identify any weakly connected nefarious routers, will incorrectly label strongly connected non-nefarious routers.\par
 We note that as the PDA of each router is dependant on it's queue buffer length, the accuracy of this classifier would suffer severely in network with heterogeneous router buffer queue lengths. The assumption around router homogeneity is however reasonable as for at-scale data center and ISP networks environments homogeneity is maintained. Although, for smaller scale at ad hoc home hobby networks or IoT networks where heterogeneity in networking components is far more likely this could present an issue. 
@@ -168,9 +167,7 @@ In \cref{ssec:Rmetricnormilisation} we present results from classification with 
 \subsection{Proportional Probe Allocation}
 \label{ssec:Rprobeallocation}
 In \cref{fig:RprobeoptROCcurves} we present results from classification, with PDA inferred from network tomography. Sub-figures (a), (c), and (e) correspond to classifier two, while sub-figures (b), (d), and (f) correspond to classifier three. Classifier one is not included in our analysis here, as the information it requires cannot be obtained via network tomography. In each sub-figure a ROC curve showing classification accuracy is provided for both unoptimised and optimised probe allocation over probe paths.\par
-Using a two-sample Kolmogorov–Smirnov test we evaluate the distribution of true positives for each classifier in each topology, results are shown in \cref{tbl:Roptkstest}. Given our average is taken over 50 simulations we select an generally accepted p-value of 0.05 to indicate a significant improvement. From this we can reject the null hypothesis of the sensitivity distribution under an equal probe allocation compared to PPA for classifier two in the Nobel and CPLEX topologies and classifier three in the Nobel topology. In each of these PPA results in a mean sensitivity improvement of 0.214, 0.1, and 0.204 respectively over all false positive rates.\par
-This means that, for any maximal tolerance of false positive, we are on average able to correctly classify 17\% more nefarious routers using network tomography with PPA. Note that improvements can also be seen in sub-figure (f), where PPA enables classification with a minimum false positive rate of 5\%, compared to only 50\% without optimisation. This is, however, not reflected in p-value test results as the comparison is only computed for sensitivity.\par
-\noindent
+Using a two-sample Kolmogorov–Smirnov test we evaluate the distribution of true positives for each classifier in each topology, results are shown in \cref{tbl:Roptkstest}. Given our average is taken over 50 simulations we select an generally accepted p-value of 0.05 to indicate a significant improvement. From this we can reject the null hypothesis of the sensitivity distribution under an equal probe allocation compared to PPA for classifier two, in the Nobel and CPLEX topologies, and classifier three in 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[H]{0.475\textwidth}
@@ -200,22 +197,22 @@ This means that, for any maximal tolerance of false positive, we are on average 
     \caption{ROC curves for optimised classification using PPA.}
     \label{fig:RprobeoptROCcurves}
 \end{figure}
-
-\begin{table}[H]
+the Nobel topology. In each of these topologies, use of PPA resulted in a mean sensitivity improvement of 0.214, 0.1, and 0.204 respectively (over all false positive rates).\par
+This means that, for any maximal tolerance of false positive, we are on average able to correctly classify 17\% more nefarious routers using network tomography with PPA. Note that improvements can also be seen in sub-figure (f), where PPA enables classification with a minimum false positive rate of 5\%, compared to only 50\% without optimisation. This is, however, not reflected in p-value test results as the comparison is only computed for sensitivity.\par
+\begin{table}[t]
  \centering
   \begin{tabular}{@{}ccc@{}}
    \toprule
-    Topology & Classifier & KS test P-value \\
+   &\multicolumn{2}{c}{KS test P-value}\\
+   \cmidrule(lr){2-3}
+    Topology & Classifier 2 & Classifier 3 \\
     \midrule
-    Nobel & 2 & 1.08e-06\\
-    Nobel & 3 & 0\\
-    Free  & 2 & 0.619\\
-    Free  & 3 & 0.280\\
-    CPLEX & 2 & 4.31e-57\\
-    CPLEX & 3 & 1.00\\
+    Nobel & 1.08e-06 & 0\\
+    Free  & 0.619 & 0.280\\
+    CPLEX & 4.31e-57 & 1.00\\
    \bottomrule
   \end{tabular}
-  \caption{Calculated Cramér–Rao bound for each topology and probe allocation}
+  \caption{KS tests of false positive rate distribution with and without PPA.}
   \label{tbl:Roptkstest}
 \end{table}
 This improvement in classifier performance with PPA for the Nobel and CPLEX topologies is due to the variation of routers between probe paths. For both the Nobel and CPLEX topologies, a single router is present in at most 25\% of paths. However, in the Free topology, a single router is present in at most 47\% of probe paths. This means that, with a proportion allocation, this singular router in the Free topology receives disproportionately more packets. Many of these additional probe packets are dropped due to the limited queue buffer, resulting in only minor changes in classification accuracy from the PPA.\par
@@ -227,7 +224,7 @@ Results from analytical calculation of the CBR, given probe paths and probe allo
 For both probe allocations, network tomography in the Nobel topology has the highest CRB. Network tomography the in the Free and CPLEX topologies was calculated to have the second highest and lowest CRB respectively. This corresponds to classifier accuracy evaluation from ROC curves of each classifier in \cref{fig:RprobeoptROCcurves}. This decrease in accuracy is proportional to the increase in number of routers in each topology. This is due to the additional probe paths, required to uniquely identify each router, reducing the number of measurements we are able to take over each path.\par
 However, under PPA probing, the larger CPLEX network has a higher CRB than the Free network. This is due to the Free topology containing a router with a degree of ten, which a disproportionate number of probe paths traverse. Under PPA more probe packets are sent to this router, causing more to be dropped as its buffer queue is already at capacity. These dropped probe packets are the cause of this decrease in the lower accuracy bound.\par
 Comparing probing schemes within topologies, the CRB of network tomography with PPA is greater, for each topology, than that an unoptimised probe allocation. The improvement in accuracy of network tomography in the Nobel and CPLEX topologies is 153.03\% and 190.66\%. However, for the Free topology, the improvement is only 29.43\%.\par
-\begin{table}[H]
+\begin{table}[t]
  \centering
   \begin{tabular}{@{}ccc@{}}
    \toprule
@@ -249,9 +246,7 @@ This is consistent with ROC curves in \cref{fig:RprobeoptROCcurves}, where a sig
 \subsection{Metric Normalisation}
 \label{ssec:Rmetricnormilisation}
 ROC curves for nefarious router classification with PDA, normalised with respect to router degree, are shown in \cref{fig:RmetricnormROCcurves}. We omit classifier one, as it does not use PDA for classification. For classifier two, a decrease in accuracy across all true and false positives rates is seen. Similarly, for classifier three, an equal or lesser accuracy over all topologies is seen.\par
-The general decrease in classification accuracy is likely due to a router's degree being a poor representation of the number of packets it receives each timestep. Other contributing factors, such as the routing tables of surrounding routers and their respective degree, would also likely need to be accounted for. It is also possible that the contributions of incoming traffic and nefarious delaying to a router's queue length are intrinsically related.\par
-This would mean that attempts to account for incoming traffic contributions so as to better identify nefarious delaying are unlikely to yield classification improvements, irrespective of the number of factors accounted for relating to incoming traffic volume. We therefore highlight, as an area for future research, methods of distinguishing between incoming traffic, and other factors which contribute to a router's buffer queue size. Such distinguishing would enable us to better identify nefarious delaying behaviour.\par
-\noindent
+The general decrease in classification accuracy is likely due to a router's degree being a poor representation of the number of packets it receives each timestep. Other contributing factors, such as the routing tables of surrounding routers and their respective degree, would also likely need to be accounted for. It is also possible that
 \begin{figure}[H]
     \centering
     \begin{subfigure}[H]{0.475\textwidth}
@@ -281,6 +276,8 @@ This would mean that attempts to account for incoming traffic contributions so a
     \caption{ROC curves for classification with PDA normalisation.}
     \label{fig:RmetricnormROCcurves}
 \end{figure}
+the contributions of incoming traffic and nefarious delaying to a router's queue length are intrinsically related.\par
+This would mean that attempts to account for incoming traffic contributions so as to better identify nefarious delaying are unlikely to yield classification improvements, irrespective of the number of factors accounted for relating to incoming traffic volume. We therefore highlight, as an area for future research, methods of distinguishing between incoming traffic, and other factors which contribute to a router's buffer queue size. Such distinguishing would enable us to better identify nefarious delaying behaviour.\par
 
 \section{Summary}
 In this chapter we have presented experimental results of three classifiers of nefarious router behaviour in three real-world ISP topologies. The efficacy of each classifier was discussed and comparisons between each classifier were made. Classifier one was found to be the most effective. Confusion matrices for classifier one's performance on each topology were presented and a small decrease in classifier performance was seen for topologies with more routers.\par

@@ -15,10 +15,6 @@ This random graph generation strategy is relatively simple. It has several probl
 Complex networks, however, have been observed to not follow properties of exponential networks. Rather, irrespective of age, function, or scope, complex network converge to a similar architecture as shown in the mapping of the world wide web (by \cite{albert_diameter_1999}). This network architecture has been dubbed as scale-free, and is characterised by the distribution of node degree following a power-law whereby the probability of a node having $k$ edges $P(k)$  is proportional to $\frac{1}{kn}$ for a network of $n$ nodes. This property is present in graphs generated using the Barabási–Albert (BA) model, as well as the Watts–Strogatz model.\par
 As the network being generated and analysed continues to increase in size we expect its behaviour and structure to become increasingly complex. Given this complex nature, the scale-free property of graph generation is highly desirable for generation of pseudo-realistic networks.
 
-\subsection{Monitor Placement}
-\label{ssec:Bmonitorplacement}
-% Briefly discuss Ma's monitor placement algorthim, leave most of the heavy lifting to Ashley's paper.
-
 \section{Routing Mechanisms}
 \label{sec:Broutingmechanisms}
 
@@ -252,8 +248,6 @@ Resulting from this representation we define router identifiability succinctly a
 \label{eq:identifiability}
     \forall r \in R_I,\;r \in M 
 \end{equation}
-\todo{Need to discuss how the addition of variables packet service time makes parameter estimation very inaccurate (even more so if transmission delays are employed)}
-
 \subsection{Picking Probe Paths Parsimoniously}
 \label{ssec:Bparsppselection}
 With a scope limited to tree network topologies, \cite{lawrence_network_2006} focused on deriving an algorithm for the selection of a set of probe paths $P^*$ for network tomography. This algorithm selects the minimal set of probe paths that allows for complete node identifiability. Such a minimal set is desirable, as when probing we allocate probe packets over each path $p\in P^*$. The amount of information we gain about a path is therefore proportionally to the number of probes allocated to it.\par
@@ -356,11 +350,9 @@ Both Greedy-Min-Cost-Rank (GMCR) and Zheng's algorithm minimize the probing cost
 \noindent Therefore, we adopt Zheng's algorithm (shown in \Cref{alg:zhengs}) for its alignment with our goal of minimizing $|P^*|$. We note that Zheng's algorithm was initially developed for the purpose of link tomography. However, \cite{zheng_minimizing_2013} highlight the applicability of their approach to node tomography, validating our adoption of the method.\par
 The core idea behind Zheng's algorithm is quantifying the contribution of a probe path to node identifiability and then adopting a greedy selection approach until all nodes are identifiable. The criteria used for this greedy selection approach is based on a novel extended bipartite graph model (EBGM), shown in \cref{fig:ebgm}.This graph model groups network nodes into $V_1$ or $V_2$ based on whether the node is identifiable.\par
 The group $U_1$ contains sets of probe paths that enable identification of a node in $V_1$. An edge $\{v_i, u_x\} \in E$ (where $E$ is the set of all edges) connects a node in $V_1$ and $U_2$ if the set of paths in $U_2$ enables identification of $V_1$. Similarly $U_2$ contains probe paths which traverse a node in $V_2$, with an edge connecting a node in $V_2$ and $U_2$ if the path traverses that node.\par
-For selection of the minimal $P^*$, while there still exists nodes which are not identifiable in $V_1$ or not traversed in $V_2$, the path with a maximum heuristic value is added to $P^*$. This heuristic value is computed in lines 8 and 16 of \Cref{alg:zhengs}.\par
-
+For selection of the minimal $P^*$, while there still exists nodes which are not identifiable in $V_1$ or not traversed in $V_2$, the path with a maximum heuristic value is added to $P^*$. This heuristic value is computed in lines 8 and 16 of \Cref{alg:zhengs}.
 \section{Parameter Estimation}
 \label{sec:Bparameterestimation}
-
 In this section we define and explain statistical concepts underpinning optimisations to our network tomography technique (as discussed in \cref{sec:Boptimization}). We note that a network, as we have defined it, is composed of only nodes (routers, switch and monitors) and physical uniform links. Inferences made about a network are analogous to inferences of nodes and links. These concepts expand upon the statistical methods framed in the context of network science (from \cite{meng_method_2016}, \cite{he_fisher_2015}, and \cite{he_network_2021}) and re-framing them for application in the context of tomographic identification of nefarious routers.\par
 The first of these key concepts is the use of Maximum Likelihood Estimation (MLE) to determine the node and link level parameters that give the highest chance of having observed the given packet delays and losses at monitor nodes. The second is the notion of using Fisher information to quantify both the amount of knowledge we have about the underlying network, and also the accuracy of our MLE for node and link parameters. Finally, we summarise the introduced concepts and concretely qualify their use in the field of network tomography.
 
@@ -417,23 +409,10 @@ For completeness we show plots of $\mathcal{S}_a$, $\mathcal{S}_b$ for our $\vec
     \end{subfigure}
     \begin{subfigure}{0.475\textwidth}
         \includegraphics[width=\textwidth]{figs/background/deriv_var_0.5.png}
-        \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})$}
+        \caption[]{$\frac{\partial}{\partial\mu} log(\vec{\theta}_b |\ \vec{y})$}
     \end{subfigure}
     \caption{Score functions of the log-likelihood of observations over $-20<x<20$}
     \label{fig:scorefunctions}
-\end{figure}
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/background/deriv_dist_10.png}
-        \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
-    \end{subfigure}
-    \begin{subfigure}{0.475\textwidth}
-        \includegraphics[width=\textwidth]{figs/background/deriv_dist_0.5.png}
-        \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
-    \end{subfigure}
-    \caption{Distribution of the score functions when evaluated at $x=\mu'$}
-    \label{fig:scorefunctiondist}
 \end{figure}
 The Fisher information is given by the variance of the distribution of the score functions at the true parameter value $\VAR[\mathbb{D}(\mathcal{S}_a)], \mu'$. Calculating $I(\theta)$ from $\vec{y}$ we obtain $I(\theta_a)= 1.77\text{e}-5$ and $I(\theta_b)=5.37\text{e}-3$ confirming initial observations that the low variance case of (b) provides more information.\par
 Note that as Fisher information is often used in cases where $\mu'$ is unknown, a secondary, and more common, method of calculation is to instead take the derivative of the score functions (second derivative of the log-likelihood). The Fisher information in then given by \cref{eq:Fisherinfo}.\par
@@ -442,6 +421,19 @@ Note that as Fisher information is often used in cases where $\mu'$ is unknown, 
     \frac{\partial^2}{\partial^2\mu} log(y\ |\ \vec{\theta})\right]
 \end{equation}
 Because the second derivative of the log-likelihood is always a single value in a normal distribution, we omit (for brevity) plots of the second derivative and its distribution when evaluated at $\mu'$.\par
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/background/deriv_dist_10.png}
+        \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_a |\ \vec{y})\right), \mu'$}
+    \end{subfigure}
+    \begin{subfigure}{0.475\textwidth}
+        \includegraphics[width=\textwidth]{figs/background/deriv_dist_0.5.png}
+        \caption[]{$\mathbb{D}\left(\frac{\partial}{\partial\mu} log(\vec{\theta}_b |\ \vec{y})\right), \mu'$}
+    \end{subfigure}
+    \caption{Distribution of the score functions when evaluated at $x=\mu'$}
+    \label{fig:scorefunctiondist}
+\end{figure}
 Now, considering the multidimensional case of a complex system containing $X=\{x_1,x_2,\ldots,x_n\}$ random variables, each governed by a respective parameter in $\vec{\theta}=\{\theta_1,\theta_2,\ldots,\theta_n\}^T$. Let the value of a single element $x\in X$ in the system have the PDF $f(x\ |\ \theta_x) = y$, with a log-likelihood of $f_{x|\theta_x}(\vec{y}_x)$ where $\theta_x\in \vec{\theta}$ and $y_x$ is the set of observations we make of $x$.\par
 Note that, in the multidimensional case, we additionally assume the score function is finite. We make this assumption to ensure we are able to compute its derivative. Posing this formally, let $|X| = n < \infty$, then:
 \begin{equation*}
@@ -463,11 +455,10 @@ Where the jth element of the ith row is given by:
     I_{ij}(\vec{\theta})= -\EX_{\vec{\theta}}\left[
     \frac{\partial^2}{\partial \theta_i \partial \theta_j} log f_{x|\vec{\theta}}(y)\right]
 \end{equation*}
-This matrix concisely represents the co-variance of all MLEs, with the co-variance of the $i$th and $j$th parameters estimator given by $I_{ij}(\vec{\theta})$. Additionally, the variance of the MLE of parameter $n\equiv I_{nn}(\vec{\theta})$.
+This matrix represents the co-variance of all MLEs. The co-variance of the $i$th and $j$th parameters' estimator is $I_{ij}(\vec{\theta})$ and the variance of the $n$th parameter's MLE is $I_{nn}(\vec{\theta})$.
 
 \subsection{The Cramér–Rao Bound}
 \label{ssec:Bcrb}
-
 Given $I(\theta)$, the Cramér–Rao Bound (CRB) gives a lower bound on the accuracy with which we can estimate each $\theta\in\hat\theta$. From \cref{ssec:Bmle} we know that $\VAR(\hat\theta)$ dictates our confidence that the MLE reflects the true value of the parameter. It follows that the CRB is a bound on $\VAR(\hat\theta)$. In fact, previous work has proven that the CRB gives a strict lower bound of:
 \begin{equation*}
     \VAR(\hat\theta) \geq 1/I(\theta)
